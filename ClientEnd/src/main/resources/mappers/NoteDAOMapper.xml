@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dao.NoteDAO">
+
+    <resultMap id="noteMap" type="note">
+        <id property="id" column="id" />
+        <association property="course" column="course_id" select="getCourseById" javaType="course" />
+    </resultMap>
+
+<!--    <select id="getNotesByFilter" resultType="note">-->
+<!--        select * from notes-->
+<!--    </select>-->
+
+    <select id="getNotesByFilter" resultMap="noteMap">
+        select
+            notes.id,
+            notes.course_id,
+            notes.content,
+            notes.file_name,
+            notes.time_added,
+            notes.time_updated,
+            courses.term_id,
+            terms.start_date
+        from
+            notes
+        left join
+            courses
+        on
+            notes.course_id = courses.id
+        left join
+            terms
+        on
+            courses.term_id = terms.id
+        where
+        1 = 1
+        <if test="termId != null and termId != ''">
+            and courses.term_id = #{termId}
+        </if>
+        <if test="courseId != null and courseId != ''">
+            and notes.course_id = #{courseId}
+        </if>
+        <if test="start != null">
+            and date(notes.time_added) &gt;= date(#{start})
+        </if>
+        <if test="end != null">
+            and date(notes.time_added) &lt;= date(#{end})
+        </if>
+        order by
+            notes.time_added desc
+    </select>
+    <select id="getCourseById" resultMap="com.example.dao.CourseDAO.courseMap" >
+        select
+            courses.id,
+            courses.name,
+            courses.description,
+            courses.term_id,
+            courses.in_progress,
+            courses.major_related
+        from
+            courses
+        where
+            id = #{id}
+    </select>
+
+    <insert id="addNote">
+        insert into
+            notes
+            (course_id, content, file_name)
+        values
+            (#{courseId}, #{content}, #{filename})
+    </insert>
+
+    <select id="getNoteById" resultMap="noteMap">
+        select
+            *
+        from
+            notes
+        where
+            id = #{id}
+    </select>
+
+    <update id="deleteFile" >
+        update
+            notes
+        set
+            file_name = null
+        where
+            id = #{id}
+    </update>
+
+    <update id="update">
+        update notes
+        <set>
+            course_id = #{cid},
+            content = #{content},
+            <if test="fn != null and fn != ''">
+                file_name = #{fn}
+            </if>
+        </set>
+        where
+            id = #{id}
+    </update>
+
+    <delete id="deleteNote">
+        delete from notes where id = #{id}
+    </delete>
+</mapper>

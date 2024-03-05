@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dao.CourseDAO">
+
+    <resultMap id="courseMap" type="course">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description" />
+        <result property="inProgress" column="in_progress" />
+        <result property="majorRelated" column="major_related" />
+        <association property="term" column="term_id" javaType="term" select="selectTerm" />
+    </resultMap>
+    <select id="getAllCourses" resultMap="courseMap" >
+        select
+            courses.id,
+            courses.name,
+            courses.description,
+            courses.term_id,
+            courses.in_progress,
+            courses.major_related,
+            terms.start_date
+        from
+            courses
+        left join
+            terms
+        on
+            courses.term_id = terms.id
+        order by
+            terms.start_date
+    </select>
+    <select id="selectTerm" resultType="term">
+        select *
+        from terms
+        where id = #{term_id}
+    </select>
+
+    <insert id="addCourse">
+        insert into courses (name, description, term_id, in_progress, major_related)
+        values (#{name}, #{desc}, #{termId}, #{inp}, #{mr})
+    </insert>
+
+    <delete id="deleteById">
+        delete from courses where id = #{id}
+    </delete>
+
+    <select id="getById" resultMap="courseMap">
+        select * from courses where id = #{id}
+    </select>
+    <update id="updateCourse">
+        update
+            courses
+        set
+            name = #{name},
+            description = #{desc},
+            term_id = #{termId},
+            in_progress = #{inp},
+            major_related = #{mr}
+        where
+            id = #{id}
+    </update>
+</mapper>

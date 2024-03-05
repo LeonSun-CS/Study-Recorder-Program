@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit note</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+
+<div align="center">
+    <h1>Edit note</h1>
+    <h3>Due to the file system design, <strong style="color: red; font-style: italic">delete the file first before
+        changing the course category</strong>, if there is an associated file to this note.</h3>
+    <form th:action="@{/notes_admin}" method="post" enctype="multipart/form-data">
+
+        <label for="cid">Course: </label>
+        <select id="cid" name="cid">
+            <option th:each="course : ${courses}" th:value="${course.id}" th:text="${course.name}" th:selected="${note.course.id == course.id}"/>
+        </select>
+        <br>
+        <br>
+        <label for="content">Content: </label>
+        <input id="content" type="text" size="50" name="content" placeholder="Type in what you learned today"
+               th:value="${note.content}"/>
+        <br>
+        <br>
+        <label for="file" >File (optional): </label>
+        <input id="file" name="file" type="file" />
+        <a th:if="${note.fileName != null}" href="#" th:attr="nid=${note.id}" onclick=delFunc()>Delete the current file</a>
+        <input hidden="hidden" name="noteid" th:value="${note.id}">
+        <input hidden="hidden" name="_method" value="PUT">
+        <br>
+        <br>
+        <input type="submit">
+    </form>
+    <form id="delForm" th:action="@{/file}" method="post">
+        <input hidden="hidden" name="fName" th:value="${note.course.id}+'/'+${note.fileName}" />
+        <input hidden="hidden" name="forNote" th:value="${note.id}">
+        <input hidden="hidden" name="_method" value="DELETE">
+    </form>
+</div>
+</body>
+<script>
+    function delFunc(){
+        document.getElementById("delForm").submit();
+    }
+</script>
+</html>

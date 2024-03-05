@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Term List</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+
+<div align="center">
+    <h1>Terms</h1>
+    <table width="1000px" border="1" style="border-style: solid">
+        <tr>
+            <th>Index</th>
+            <th>Term</th>
+            <th>Start Date</th>
+            <th>Action</th>
+        </tr>
+        <tr th:each="term, stat : ${terms}">
+            <td th:text="${stat.index} + 1" />
+            <td th:text="${term.name}" />
+            <td th:text="${#dates.format(term.startDate, 'yyyy-MM-dd')}" />
+            <td><a th:href="@{/term_edit/} + ${term.id}">Edit</a> &nbsp;
+                <a id="deleteButton" href="#" th:attr="delId=${term.id}" onclick="delFunc()">Delete</a></td>
+            <form hidden="hidden" th:id="delForm + ${term.id}" th:action="@{/term}" method="post">
+                <input hidden="hidden" name="id" th:value="${term.id}" />
+                <input name="_method" hidden="hidden" value="DELETE">
+            </form>
+        </tr>
+    </table>
+    <br>
+    <a th:href="@{/term/addition}">Add new term</a>
+</div>
+<a th:href="@{/}">Index page</a>
+</body>
+<script>
+    function delFunc() {
+        document.getElementById("delForm"+event.target.getAttribute("delId")).submit();
+    }
+</script>
+</html>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dao.UserDAO">
+    <resultMap id="userMap" type="user">
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+    </resultMap>
+    <select id="getUserByUN" resultMap="userMap">
+        select
+            username,
+            password
+        from
+            users
+        where
+            username = #{un}
+    </select>
+</mapper>

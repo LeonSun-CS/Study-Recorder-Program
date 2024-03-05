@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Course List</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+
+<div align="center">
+    <h1>Courses</h1>
+    <table width="1000px" border="1" style="border-style: solid">
+        <tr>
+            <th>Index</th>
+            <th>Course Name</th>
+            <th>Description</th>
+            <th>Term</th>
+            <th>In Progress</th>
+            <th>Major Related</th>
+            <th>Action</th>
+        </tr>
+        <tr th:each="course, stat : ${courses}">
+            <td th:text="${stat.index} + 1" />
+            <td th:text="${course.name}" />
+            <td th:text="${course.description}" />
+            <td th:text="${course.term.name}" />
+            <td th:text="${course.inProgress}" />
+            <td th:text="${course.majorRelated}" />
+            <td><a th:href="@{/course_edit/} + ${course.id}">Edit</a> &nbsp;
+                <a id="deleteButton" href="#" th:attr="delId=${course.id}" onclick="delFunc()">Delete</a></td>
+            <form hidden="hidden" th:id="delForm + ${course.id}" th:action="@{/course}" method="post">
+                <input hidden="hidden" name="id" th:value="${course.id}" />
+                <input name="_method" hidden="hidden" value="DELETE">
+            </form>
+        </tr>
+    </table>
+    <br>
+    <a th:href="@{/course/addition}">Add new course</a>
+</div>
+<a th:href="@{/}">Index page</a>
+</body>
+<script>
+    function delFunc() {
+        document.getElementById("delForm"+event.target.getAttribute("delId")).submit();
+    }
+</script>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Term Edit Page</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+
+<div align="center">
+    <h1>Edit course</h1>
+    <form th:action="@{/course}" method="post">
+        <label for="name" >Name:</label>
+        <input id="name" name="name" type="text" placeholder="Subject & number" th:value="${course.name}">
+        <br />
+        <br />
+        <label for="desc">Description:</label>
+        <input type="text" id="desc" name="desc" size="50" th:value="${course.description}">
+        <br>
+        <br>
+        <label for="term">Term: </label>
+        <select name="term" id="term">
+            <option th:each="term : ${terms}" th:text="${term.name}" th:value="${term.id}" th:selected="${term.id == course.term.id}"></option>
+        </select>
+        <br />
+        <br />
+        Is this course currently in progress?
+        <label for="nip">No</label>
+        <input type="radio" name="inp" value="0" id="nip" th:checked="${!course.inProgress}">
+        <label for="iip">Yes</label>
+        <input type="radio" name="inp" value="1" id="iip" th:checked="${course.inProgress}" >
+        <input hidden="hidden" name="id" th:value="${course.id}">
+        <br>
+        <br>
+        Is this course major related?
+        <label for="nmr">No</label>
+        <input type="radio" name="mr" value="0" id="nmr" th:checked="${!course.majorRelated}">
+        <label for="imr">Yes</label>
+        <input type="radio" name="mr" value="1" id="imr" th:checked="${course.majorRelated}">
+        <input hidden="hidden" name="_method" value="PUT">
+        <br />
+        <br />
+        <input type="submit">
+    </form>
+</div>
+<a th:href="@{/}">Index page</a>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Term Edit Page</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+<div align="center">
+    <h1>Edit term</h1>
+    <form th:action="@{/term}" method="post">
+        <label for="name" >Name:</label>
+        <input id="name" name="name" type="text" th:value="${term.name}" placeholder="yyyySemester">
+        <br />
+        <br />
+        <label for="date">Start Date:</label>
+        <input type="date" id="date" name="date" th:value="${#dates.format(term.startDate, 'yyyy-MM-dd')}" >
+        <input name="id" hidden="hidden" th:value="${term.id}">
+        <input hidden="hidden" name="_method" value="PUT">
+        <br />
+        <br />
+        <input type="submit">
+    </form>
+</div>
+<a th:href="@{/}">Index page</a>
+</body>
+</html>

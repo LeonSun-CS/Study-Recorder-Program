@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dao.TermDAO">
+
+    <select id="getAllTerms" resultType="term">
+        select
+            *
+        from
+            terms
+    </select>
+
+    <insert id="addTerm">
+        insert into terms (name, start_date) values (#{name}, #{date})
+    </insert>
+
+    <delete id="deleteTermById">
+        delete from terms where id = #{id}
+    </delete>
+
+    <select id="getById" resultType="term">
+        select
+            *
+        from
+            terms
+        where
+            id = #{id}
+    </select>
+
+    <update id="editTerm">
+        update
+            terms
+        <set>
+            name = #{name},
+            start_date = #{startDate}
+        </set>
+        where
+            id = #{id}
+    </update>
+</mapper>

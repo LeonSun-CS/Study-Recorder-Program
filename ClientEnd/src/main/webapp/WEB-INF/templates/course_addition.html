@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Term Addition Page</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+<div align="center">
+    <h1>Add new course</h1>
+    <form th:action="@{/course}" method="post">
+        <label for="name" >Name:</label>
+        <input id="name" name="name" type="text" placeholder="Subject & number">
+        <br />
+        <br />
+        <label for="desc">Description:</label>
+        <input type="text" id="desc" size="50" name="desc">
+        <br>
+        <br>
+        <label for="term">Term: </label>
+        <select name="term" id="term">
+            <option th:each="term : ${terms}" th:text="${term.name}" th:value="${term.id}"></option>
+        </select>
+        <br />
+        <br />
+        Is this course currently in progress?
+        <label for="nip">No</label>
+        <input type="radio" name="inp" value="0" id="nip">
+        <label for="iip">Yes</label>
+        <input type="radio" name="inp" value="1" id="iip">
+        <br>
+        <br>
+        Is this course major related?
+        <label for="nmr">No</label>
+        <input type="radio" name="mr" value="0" id="nmr">
+        <label for="imr">Yes</label>
+        <input type="radio" name="mr" value="1" id="imr">
+        <input hidden="hidden" name="_method" value="POST">
+        <br />
+        <br />
+        <input type="submit">
+    </form>
+</div>
+<a th:href="@{/}">Index page</a>
+</body>
+</html>

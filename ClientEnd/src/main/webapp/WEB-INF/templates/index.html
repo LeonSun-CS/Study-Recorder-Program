@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Study Recorder</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+<h1 align="center">Welcome</h1>
+  <div>This is my small project, "Study_Recorder_Program". I use it to record the key concepts I learned throughout the
+    school sessions, while I am pursuing my Bachelor's degree in Computer Science and Data Science at
+    <a href="https://www.wisc.edu">University of Wisconsin-Madison</a>. If you have any question, I would be more than
+    happy to hear it through my <b><a href="https://www.linkedin.com/in/leonsun2000/">LinkedIn</a></b> page. </div>
+  <div>It integrates modern backend technologies such as <u style="font-weight: bold">
+    <a href="https://spring.io/projects/spring-framework">Spring framework</a>,
+    <a href="https://docs.spring.io/spring-framework/reference/web/webmvc.html">Spring MVC</a>, and
+    <a href="https://mybatis.org/mybatis-3/">MyBatis</a></u>. The data in this program, such as the school terms, the courses, and the notes, are
+    <strong style="color: red; font-style: italic">dynamically</strong> displayed, meaning the pages are not literal or static.
+    <u style="font-weight: bold"><a href="https://www.mysql.com">MySQL</a></u> is used for
+    most relational data storage, while key-value database <u style="font-weight: bold"><a href="https://redis.io">Redis</a></u>
+    is utilized to store session ID and quota quantities.
+  </div>
+  <div>
+    Please note the course descriptions here are copied <em>VERBATIM</em> from the website of
+    <a href="https://www.wisc.edu">University of Wisconsin-Madison</a>. I don't claim any of the copyright.
+  </div>
+<div>Again, I am still an undergrad and am still learning, so PLEASE SHOW MERCY if you're attacking my website. :)</div>
+<br>
+<br>
+<div><a th:href="@{/notes}">Click here to go to review my notes</a></div>
+<br>
+<br>
+<h2 align="center">List of Taken Courses</h2>
+<div align="center">
+  <table width="1000px" border="1" style="border-style: solid">
+    <tr>
+      <th>index</th>
+      <th>name</th>
+      <th>description</th>
+      <th>term/semester</th>
+      <th>in progress</th>
+      <th>major related</th>
+    </tr>
+    <tr th:each="course, runner : ${courses}" th:style="${runner.even} ? 'background-color:yellow' : ''">
+      <td th:text="${runner.index}+1" />
+      <td th:text="${course.name}" />
+      <td th:text="${course.description}" />
+      <td th:text="${course.term.name}" />
+      <td th:text="${course.inProgress}" />
+      <td th:text="${course.majorRelated}" />
+    </tr>
+  </table>
+</div>
+<br />
+<br />
+<h6>Admin tools</h6>
+<a th:href="@{/term}">Terms</a>
+<a th:href="@{/course}">Course</a>
+<a th:href="@{/notes_admin}" >Notes</a>
+</body>
+</html>

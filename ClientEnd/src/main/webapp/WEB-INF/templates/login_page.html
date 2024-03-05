@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Authentication</title>
+</head>
+<body>
+<!--<div th:insert="templates :: top_info"></div>-->
+
+
+<div align="center">
+    <h1>User Authentication</h1>
+    <form th:href="@{/auth}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" placeholder="username" name="username" id="username">
+        <br>
+        <br>
+        <label for="password">Username:</label>
+        <input type="password" name="password" id="password">
+        <br>
+        <br>
+        <input type="submit">
+    </form>
+</div>
+</body>
+</html>

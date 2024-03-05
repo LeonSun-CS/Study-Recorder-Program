@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>templates</title>
+</head>
+<body>
+<div th:fragment="top_info">
+    <div align="center" th:if="${!auth.isAuthed() and quota.remaining!=0}" style="background-color: orange">
+        You are browsing in guest mode.
+        <br>
+        <div th:text="'IP: ' + ${quota.ip} + ', quota: ' + ${quota.remaining}"></div>
+    </div>
+
+    <div align="center" th:if="${auth.isAuthed()}" style="background-color: green">
+        You are logged in as admin, Welcome! <br>
+        <div th:text="'For test purpose, IP: ' + ${quota.ip} + ', quota: ' + ${quota.remaining}"></div>
+    </div>
+
+    <div align="center" th:if="${!auth.isAuthed() and quota.remaining==0}" style="background-color: red">
+        You are not logged in as an admin, and you have reached the daily limit for access.
+        <div th:text="'IP: ' + ${quota.ip} + ', quota: ' + ${quota.remaining}"></div>
+    </div>
+</div>
+</body>
+</html>

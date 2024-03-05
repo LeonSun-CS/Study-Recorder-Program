@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:spring-mybatis="http://mybatis.org/schema/mybatis-spring"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:component-scan base-package="com.example.*" />
+    <mvc:default-servlet-handler />
+
+    <bean class="org.thymeleaf.spring5.view.ThymeleafViewResolver" id="templateResolver" >
+        <property name="characterEncoding" value="UTF-8" />
+        <property name="templateEngine" >
+            <bean class="org.thymeleaf.spring5.SpringTemplateEngine" >
+                <property name="templateResolver" >
+                    <bean class="org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver">
+                        <property name="characterEncoding" value="UTF-8" />
+                        <property name="prefix" value="/WEB-INF/templates/" />
+                        <property name="suffix" value=".html" />
+                    </bean>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+    <mvc:annotation-driven>
+        <mvc:message-converters>
+            <!-- 配置Fastjson支持 -->
+            <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/html;charset=UTF-8</value>
+                        <value>application/json</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+    <context:property-placeholder location="classpath:db.properties" />
+
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <property name="username" value="${db.username}" />
+        <property name="password" value="${db.password}" />
+        <property name="driverClassName" value="${db.driver}" />
+        <property name="url" value="${db.url}" />
+    </bean>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" >
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:iBatis.xml" />
+        <property name="mapperLocations" value="classpath:mappers/*.xml" />
+        <property name="typeAliasesPackage" value="com.example.pojo" />
+    </bean>
+
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <spring-mybatis:scan base-package="com.example.dao" />
+    <tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager" />
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver" >
+        <property name="defaultEncoding" value="UTF-8" />
+        <property name="maxUploadSize" value="50000000" />
+    </bean>
+
+    <bean id="jedis" class="redis.clients.jedis.Jedis">
+        <constructor-arg name="host" value="${redis.ip}" />
+        <constructor-arg name="port" value="${redis.port}" />
+    </bean>
+
+    <mvc:interceptors>
+        <!--        global interceptor setup-->
+        <!--        <ref bean="helloWorldInterceptor" />-->
+
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/limit_reached"/>
+            <mvc:exclude-mapping path="/auth"/>
+
+            <ref bean="allRouteCheckInterceptor" />
+        </mvc:interceptor>
+
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/"/>
+            <mvc:exclude-mapping path="/auth"/>
+            <mvc:exclude-mapping path="/notes"/>
+            <mvc:exclude-mapping path="/limit_reached"/>
+            <mvc:exclude-mapping path="/files/**"/>
+            <ref bean="adminAuthWallInterceptor" />
+        </mvc:interceptor>
+
+    </mvc:interceptors>
+
+
+</beans>

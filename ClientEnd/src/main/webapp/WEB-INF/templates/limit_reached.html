@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Limit reached</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+
+<h1>Sorry, you have reached the limit to access the site. </h1>
+<h3>The remaining quota: <span th:text="${quota.remaining}"></span> for IP: <span th:text="${quota.ip}"></span></h3>
+<h3>Authentication status: <span th:if="${auth.authed}" style="color: green">authenticated</span>
+    <span th:if="${!auth.authed}" style="color: red">unauthenticated</span> for session ID:
+    <span th:text="${auth.sessionId}"></span>
+</h3>
+<div><a th:href="@{/auth}">Admin Log In</a></div>
+</body>
+</html>

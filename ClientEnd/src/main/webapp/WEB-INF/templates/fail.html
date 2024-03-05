@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Failed</title>
+</head>
+<body>
+<div th:insert="templates :: top_info"></div>
+
+
+<h1>Failed!</h1>
+<div th:text="${msg}"></div>
+<br>
+<br>
+
+<a th:href="@{/}">Index page</a>
+</body>
+</html>

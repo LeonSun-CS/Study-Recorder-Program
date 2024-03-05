@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Authentication</title>
+</head>
+<body>
+<!--<div th:insert="templates :: top_info"></div>-->
+
+<h1>Welcome, admin</h1>
+<form th:action="@{/auth}" method="post">
+    <label for="username">Username: </label>
+    <input type="text" required id="username" name="username" placeholder="username" autocomplete="username">
+    <br>
+    <br>
+    <label for="password">Password: </label>
+    <input type="password" required id="password" name="password" placeholder="password" autocomplete="current-password">
+    <br>
+    <br>
+    <input type="submit">
+</form>
+</body>
+</html>
