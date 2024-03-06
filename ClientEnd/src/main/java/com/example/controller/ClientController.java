@@ -94,6 +94,10 @@ public class ClientController {
             quotaObject.setIp(request.getHeader("X-Real-IP"));
 //            quotaObject.setIp(request.getRemoteAddr());
         }
+        if (jedis.get("ip-" + quotaObject.getIp()) == null) {
+            mv.setViewName("redirect:/");
+            return mv;
+        }
         quotaObject.setRemaining(Integer.valueOf(jedis.get("ip-" + quotaObject.getIp())));
         mv.addObject("quota", quotaObject);
 
