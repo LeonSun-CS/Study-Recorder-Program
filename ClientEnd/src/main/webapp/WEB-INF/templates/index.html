@@ -42,7 +42,7 @@
       <th>in progress</th>
       <th>major related</th>
     </tr>
-    <tr th:each="course, runner : ${courses}" th:style="${runner.even} ? 'background-color:yellow' : ''">
+    <tr th:each="course, runner : ${courses}" th:style="${course.inProgress} ? 'background-color:yellow' : ''">
       <td th:text="${runner.index}+1" />
       <td th:text="${course.name}" />
       <td th:text="${course.description}" />
