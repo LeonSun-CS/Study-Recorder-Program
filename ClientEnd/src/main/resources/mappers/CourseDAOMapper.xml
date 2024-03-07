@@ -28,7 +28,7 @@
         on
             courses.term_id = terms.id
         order by
-            terms.start_date
+            terms.start_date desc
     </select>
     <select id="selectTerm" resultType="term">
         select *
