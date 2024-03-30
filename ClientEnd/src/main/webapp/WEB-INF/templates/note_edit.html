@@ -21,8 +21,10 @@
         <br>
         <br>
         <label for="content">Content: </label>
-        <input id="content" type="text" size="50" name="content" placeholder="Type in what you learned today"
-               th:value="${note.content}"/>
+<!--        <input id="content" type="text" size="50" name="content" placeholder="Type in what you learned today"-->
+<!--               th:value="${note.content}"/>-->
+        <textarea rows="5" cols="50" id="content" name="content" placeholder="Type in what you learned today"
+               th:field="${note.content}"></textarea>
         <br>
         <br>
         <label for="file" >File (optional): </label>

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,22 +16,26 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class AdminAuthWallInterceptor implements HandlerInterceptor {
     @Autowired
-    Jedis jedis;
+    JedisPool jedisPool;
     @Autowired
     AuthHelper authHelper;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String sid = request.getSession().getId();
         authHelper.setSessionId(sid);
-        String status = jedis.get("sid-" + sid);
-        if (status == null) {
-            authHelper.setAuthed(false);
-            response.sendRedirect("/auth");
-            return false;
-        }
 
-        authHelper.setAuthed(true);
-        return true;
+        try (Jedis jedis = jedisPool.getResource()) {
+
+            String status = jedis.get("sid-" + sid);
+            if (status == null) {
+                authHelper.setAuthed(false);
+                response.sendRedirect("/auth");
+                return false;
+            }
+
+            authHelper.setAuthed(true);
+            return true;
 //        return HandlerInterceptor.super.preHandle(request, response, handler);
+        }
     }
 }

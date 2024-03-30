@@ -3,6 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <title>Notes</title>
+
+<!--  LaTex plugin-->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script>
+  <script type="text/javascript">
+    MathJax = {
+      tex: {
+        inlineMath: [
+          ['$', '$'],
+          ['\\(', '\\)']
+        ],
+        displayMath: [
+          ['$$', '$$']
+        ],
+        processEscapes: true
+      },
+    };
+  </script>
+
 </head>
 <body>
 <div th:insert="templates :: top_info"></div>
@@ -34,6 +53,9 @@
   <br>
   <br>
   <br>
+  <div align="left"><a th:href="@{/}">Index page</a></div>
+  <br>
+  <a th:href="@{/notes_admin/add}">Add note</a>
   <table width="1400px" border="1" style="border-style: solid">
     <tr>
       <th>Index</th>
@@ -50,9 +72,11 @@
       <td th:text="${note.course.term.name}" />
       <td th:text="${note.course.name}" />
       <td th:text="${note.timeAdded}" />
-      <td th:text="${note.content}" />
+      <td><div style="white-space: pre-line" th:text="${note.content}" ></div> </td>
       <td>
-        <a th:if="${note.fileName != null}" th:href="@{/files/{cid}/{fn}(cid=${note.course.id},fn=${note.fileName})}">Click to view</a>
+        <a th:if="${note.fileName != null}" th:href="@{/files/{cid}/{fn}(cid=${note.course.id},fn=${note.fileName})}">Click to view
+          <span th:text="${#strings.toUpperCase(#strings.arraySplit(note.fileName, '.')[1])}"> </span> file
+        </a>
         <span th:if="${note.fileName == null}">No file uploaded for this note</span>
       </td>
       <td th:text="${note.timeUpdated}" />
@@ -66,15 +90,14 @@
       </td>
     </tr>
   </table>
-  <a th:href="@{/notes_admin/add}">Add note</a>
   <br>
   <br>
 </div>
-<a th:href="@{/}">Index page</a>
 </body>
 <script>
   function delFunc(){
     document.getElementById("delForm" + event.target.getAttribute("did")).submit();
   }
 </script>
+
 </html>

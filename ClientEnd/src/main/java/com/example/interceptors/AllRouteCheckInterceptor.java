@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.args.ExpiryOption;
 import redis.clients.jedis.params.SetParams;
 
@@ -18,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class AllRouteCheckInterceptor implements HandlerInterceptor {
     @Autowired
-    Jedis jedis;
+    JedisPool jedisPool;
     @Autowired
     private Quota quotaObject;
     @Autowired
@@ -40,38 +41,43 @@ public class AllRouteCheckInterceptor implements HandlerInterceptor {
         quotaObject.setIp(ip);
         String quotaKey = "ip-" + ip;
         Integer quotaValue = null;
-        String quotas = jedis.get(quotaKey);
-        // first check if logged in as an admin; if logged in, no need to check the quotas
-        String authStatus = jedis.get("sid-" + sid);
-        if ("yes".equals(authStatus)) {
-            quotaObject.setRemaining(50);
-            authHelper.setAuthed(true);
-            return true;
-        }
 
-        // not authed
-        authHelper.setAuthed(false);
+        try (Jedis jedis = jedisPool.getResource()) {
 
-        // if not logged in, check their eligibility to query
-        if (quotas == null) {
-            quotaValue = 50;
-            // never visited or last limitation expired
-            jedis.set(quotaKey, Integer.toString(quotaValue));
-            jedis.expire(quotaKey, 86400, ExpiryOption.NX);  // the limitation expires after 1 day
-        } else {
-            int q = Integer.parseInt(quotas);
-            if (q > 0) {
-                quotaValue = q-1;
-                jedis.set(quotaKey, String.valueOf(quotaValue), SetParams.setParams().keepttl());
-            } else {
-                // limitation reached
-                response.sendRedirect("/limit_reached");
-                return false;
+            String quotas = jedis.get(quotaKey);
+            // first check if logged in as an admin; if logged in, no need to check the quotas
+            String authStatus = jedis.get("sid-" + sid);
+            if ("yes".equals(authStatus)) {
+                quotaObject.setRemaining(50);
+                authHelper.setAuthed(true);
+                return true;
             }
-        }
-        quotaObject.setRemaining(quotaValue);
-        System.out.println("quotaObject = " + quotaObject);
-        return true;
+
+            // not authed
+            authHelper.setAuthed(false);
+
+            // if not logged in, check their eligibility to query
+            if (quotas == null) {
+                quotaValue = 50;
+                // never visited or last limitation expired
+                jedis.set(quotaKey, Integer.toString(quotaValue));
+                jedis.expire(quotaKey, 86400, ExpiryOption.NX);  // the limitation expires after 1 day
+            } else {
+                int q = Integer.parseInt(quotas);
+                if (q > 0) {
+                    quotaValue = q - 1;
+                    jedis.set(quotaKey, String.valueOf(quotaValue), SetParams.setParams().keepttl());
+                } else {
+                    // limitation reached
+                    response.sendRedirect("/limit_reached");
+                    return false;
+                }
+            }
+
+            quotaObject.setRemaining(quotaValue);
+            System.out.println("quotaObject = " + quotaObject);
+            return true;
 //        return HandlerInterceptor.super.preHandle(request, response, handler);
+        }
     }
 }

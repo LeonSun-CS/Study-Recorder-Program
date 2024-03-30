@@ -68,7 +68,13 @@
         <property name="maxUploadSize" value="50000000" />
     </bean>
 
-    <bean id="jedis" class="redis.clients.jedis.Jedis">
+<!--    <bean id="jedis" class="redis.clients.jedis.Jedis">
+        <constructor-arg name="host" value="${redis.ip}" />
+        <constructor-arg name="port" value="${redis.port}" />
+    </bean>-->
+
+    <!-- Define Jedis pool bean -->
+    <bean id="jedisPool" class="redis.clients.jedis.JedisPool">
         <constructor-arg name="host" value="${redis.ip}" />
         <constructor-arg name="port" value="${redis.port}" />
     </bean>

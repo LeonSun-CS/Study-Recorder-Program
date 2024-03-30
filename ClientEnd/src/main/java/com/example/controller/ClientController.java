@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.params.SetParams;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,7 +35,7 @@ public class ClientController {
     @Autowired
     private AuthHelper authHelper;
     @Autowired
-    Jedis jedis;
+    JedisPool jedisPool;
 
     @RequestMapping("/")
     public ModelAndView indexPage() {
@@ -94,19 +95,22 @@ public class ClientController {
             quotaObject.setIp(request.getHeader("X-Real-IP"));
 //            quotaObject.setIp(request.getRemoteAddr());
         }
-        if (jedis.get("ip-" + quotaObject.getIp()) == null) {
-            mv.setViewName("redirect:/");
+        try (Jedis jedis = jedisPool.getResource()) {
+
+            if (jedis.get("ip-" + quotaObject.getIp()) == null) {
+                mv.setViewName("redirect:/");
+                return mv;
+            }
+            quotaObject.setRemaining(Integer.valueOf(jedis.get("ip-" + quotaObject.getIp())));
+            mv.addObject("quota", quotaObject);
+
+            if (authHelper.getSessionId() == null) {
+                authHelper.setSessionId(request.getSession().getId());
+                authHelper.setAuthed("yes".equals(jedis.get("sid-" + authHelper.getSessionId())));
+            }
+            mv.addObject("auth", authHelper);
             return mv;
         }
-        quotaObject.setRemaining(Integer.valueOf(jedis.get("ip-" + quotaObject.getIp())));
-        mv.addObject("quota", quotaObject);
-
-        if (authHelper.getSessionId() == null) {
-            authHelper.setSessionId(request.getSession().getId());
-            authHelper.setAuthed("yes".equals(jedis.get("sid-" + authHelper.getSessionId())));
-        }
-        mv.addObject("auth", authHelper);
-        return mv;
     }
 
     @GetMapping("/auth")
@@ -115,16 +119,20 @@ public class ClientController {
 
         // check if already verified
         String id = request.getSession().getId();
-        String s = jedis.get("sid-" + id);
-        if ("yes".equals(s)) {
-            // already verified identity
-            mv.setViewName("redirect:/");
+
+        try (Jedis jedis = jedisPool.getResource()) {
+
+            String s = jedis.get("sid-" + id);
+            if ("yes".equals(s)) {
+                // already verified identity
+                mv.setViewName("redirect:/");
+                return mv;
+            }
+
+            mv.addObject("quota", quotaObject);
+            mv.addObject("auth", authHelper);
             return mv;
         }
-
-        mv.addObject("quota", quotaObject);
-        mv.addObject("auth", authHelper);
-        return mv;
     }
     @PostMapping("/auth")
     public ModelAndView authProcess(@RequestParam("username") String un,
@@ -134,22 +142,26 @@ public class ClientController {
 
         // check if already verified
         String id = request.getSession().getId();
-        String s = jedis.get("sid-" + id);
-        if ("yes".equals(s)) {
-            // already verified identity
-            mv.setViewName("redirect:/");
-            return mv;
-        }
-        // verify username and password match
-        if (userService.verifyUser(un, pw)) {
-            jedis.set("sid-"+ id, "yes", SetParams.setParams().ex(10800));
-        } else {
-            mv.addObject("msg", "Please check your authentication details");
-            mv.setViewName("fail");
 
-            mv.addObject("quota", quotaObject);
-            mv.addObject("auth", authHelper);
-            return mv;
+        try (Jedis jedis = jedisPool.getResource()) {
+
+            String s = jedis.get("sid-" + id);
+            if ("yes".equals(s)) {
+                // already verified identity
+                mv.setViewName("redirect:/");
+                return mv;
+            }
+            // verify username and password match
+            if (userService.verifyUser(un, pw)) {
+                jedis.set("sid-" + id, "yes", SetParams.setParams().ex(10800));
+            } else {
+                mv.addObject("msg", "Please check your authentication details");
+                mv.setViewName("fail");
+
+                mv.addObject("quota", quotaObject);
+                mv.addObject("auth", authHelper);
+                return mv;
+            }
         }
         mv.setViewName("redirect:/");
         return mv;
