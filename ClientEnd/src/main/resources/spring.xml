@@ -85,15 +85,16 @@
 
         <mvc:interceptor>
             <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/static/**"/>
             <mvc:exclude-mapping path="/limit_reached"/>
             <mvc:exclude-mapping path="/auth"/>
-
             <ref bean="allRouteCheckInterceptor" />
         </mvc:interceptor>
 
         <mvc:interceptor>
             <mvc:mapping path="/**"/>
             <mvc:exclude-mapping path="/"/>
+            <mvc:exclude-mapping path="/static/**"/>
             <mvc:exclude-mapping path="/auth"/>
             <mvc:exclude-mapping path="/notes"/>
             <mvc:exclude-mapping path="/limit_reached"/>
