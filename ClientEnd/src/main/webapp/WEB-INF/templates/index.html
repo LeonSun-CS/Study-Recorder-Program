@@ -1,62 +1,89 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
     <title>My Study Recorder</title>
+    <th:block th:insert="templates :: common-head"></th:block>
+    <!--  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>-->
+    <link rel="stylesheet" href="https://www.leon-sun.com/static/css/study_recorder/index.css"/>
 </head>
 <body>
 <div th:insert="templates :: top_info"></div>
 
-<h1 align="center">Welcome</h1>
-  <div>This is my small project, "Study_Recorder_Program". I use it to record the key concepts I learned throughout the
-    school sessions, while I am pursuing my Bachelor's degree in Computer Science and Data Science at
-    <a href="https://www.wisc.edu">University of Wisconsin-Madison</a>. If you have any question, I would be more than
-    happy to hear it through my <b><a href="https://www.linkedin.com/in/leonsun2000/">LinkedIn</a></b> page. </div>
-  <div>It integrates modern backend technologies such as <u style="font-weight: bold">
-    <a href="https://spring.io/projects/spring-framework">Spring framework</a>,
-    <a href="https://docs.spring.io/spring-framework/reference/web/webmvc.html">Spring MVC</a>, and
-    <a href="https://mybatis.org/mybatis-3/">MyBatis</a></u>. The data in this program, such as the school terms, the courses, and the notes, are
-    <strong style="color: red; font-style: italic">dynamically</strong> displayed, meaning the pages are not literal or static.
-    <u style="font-weight: bold"><a href="https://www.mysql.com">MySQL</a></u> is used for
-    most relational data storage, while key-value database <u style="font-weight: bold"><a href="https://redis.io">Redis</a></u>
-    is utilized to store session ID and quota quantities.
-  </div>
-  <div>
-    Please note the course descriptions here are copied <em>VERBATIM</em> from the website of
-    <a href="https://www.wisc.edu">University of Wisconsin-Madison</a>. I don't claim any of the copyright.
-  </div>
-<div>Again, I am still an undergrad and am still learning, so PLEASE SHOW MERCY if you're attacking my website. :)</div>
-<br>
-<br>
-<div><a th:href="@{/notes}">Click here to go to review my notes</a></div>
-<br>
-<br>
-<h2 align="center">List of Taken Courses</h2>
-<div align="center">
-  <table width="1000px" border="1" style="border-style: solid">
-    <tr>
-      <th>index</th>
-      <th>name</th>
-      <th>description</th>
-      <th>term/semester</th>
-      <th>in progress</th>
-      <th>major related</th>
-    </tr>
-    <tr th:each="course, runner : ${courses}" th:style="${course.inProgress} ? 'background-color:yellow' : ''">
-      <td th:text="${runner.index}+1" />
-      <td th:text="${course.name}" />
-      <td th:text="${course.description}" />
-      <td th:text="${course.term.name}" />
-      <td th:text="${course.inProgress}" />
-      <td th:text="${course.majorRelated}" />
-    </tr>
-  </table>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Welcome to My Study Recorder</h1>
+    <div class="mb-4">
+
+        <p>Welcome to my digital brain dump, aka "Study_Recorder_Program"! This is where I attempt to make sense of the
+            academic chaos while pursuing my Bachelor's in Computer Science and Data Science at the
+            <a href="https://www.wisc.edu">University of Wisconsin-Madison</a>. If you're brave enough to peek into my
+            educational journey, feel free to
+            connect on <b><a href="https://www.linkedin.com/in/leonsun2000/">LinkedIn</a></b> - I promise I don't bite
+            (most days).
+        </p>
+
+        <p>
+            This isn't just any ordinary project; it's a technological smorgasbord featuring the
+            Spring framework,
+            Spring MVC, and
+            MyBatis. The contents here are fresh and dynamic! MySQL keeps my relational data in check,
+            while Redis handles the behind-the-scenes magic of session IDs and quota quantities (reset daily).
+            And because I like to keep things shipshape, MySQL, Tomcat, Nginx, and Redis are all neatly packaged in
+            Docker containers - it's like a digital version of those Russian nesting dolls, but with less vodka
+            and more code.
+        </p>
+        <p>
+            Now, a quick public service announcement: Some course materials are copyrighted by UW-Madison. So, no sneaky
+            plagiarism, folks!
+        </p>
+        <p>
+            Lastly, a humble request from your friendly neighborhood undergrad: If you spot any quirks
+            or hiccups on this site, remember - I'm still learning the ropes. So, before you unleash
+            your inner critic, consider this my digital puppy-dog eyes pleading for mercy.
+            Pretty please? :)
+        </p>
+
+    </div>
+    <br>
+    <div><a id="note-link" th:href="@{/notes}" class="btn btn-primary">Click here to go to review my notes</a></div>
+    <!--<div id="ts" class="cf-turnstile" data-sitekey="0x4AAAAAAAYlvEDpt3eHdtWz" data-callback="javascriptCallback" data-theme="light"></div>-->
+
+
+    <br>
+    <br>
+    <h2 class="text-center mb-3">List of Taken Courses</h2>
+    <div class="table-responsive">
+        <table class="course-table">
+            <thead>
+            <tr>
+                <th>Index</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Term/Semester</th>
+                <th>In Progress</th>
+                <th>Major Related</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="course, runner : ${courses}" th:class="${course.inProgress} ? 'in-progress'">
+                <td th:text="${runner.index}+1"/>
+                <td th:text="${course.name}"/>
+                <td th:text="${course.description}"/>
+                <td th:text="${course.term.name}"/>
+                <td th:text="${course.inProgress}" />
+                <td th:text="${course.majorRelated}"/>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <br/>
+    <br/>
+    <div class="mt-4">
+        <h6>Admin tools</h6>
+        <a th:href="@{/term}" class="btn btn-sm btn-secondary me-2">Terms</a>
+        <a th:href="@{/course}" class="btn btn-sm btn-secondary me-2">Course</a>
+        <a th:href="@{/notes}" class="btn btn-sm btn-secondary">Notes</a>
+    </div>
 </div>
-<br />
-<br />
-<h6>Admin tools</h6>
-<a th:href="@{/term}">Terms</a>
-<a th:href="@{/course}">Course</a>
-<a th:href="@{/notes_admin}" >Notes</a>
+
 </body>
 </html>

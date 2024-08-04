@@ -95,6 +95,7 @@
         <set>
             course_id = #{cid},
             content = #{content},
+            deletable = #{param5},
             <if test="fn != null and fn != ''">
                 file_name = #{fn}
             </if>

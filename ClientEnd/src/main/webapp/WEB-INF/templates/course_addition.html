@@ -1,47 +1,50 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <th:block th:insert="templates :: common-head"></th:block>
     <meta charset="UTF-8">
-    <title>Term Addition Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add a new note</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
+<body class="bg-light">
 <div th:insert="templates :: top_info"></div>
 
-<div align="center">
-    <h1>Add new course</h1>
-    <form th:action="@{/course}" method="post">
-        <label for="name" >Name:</label>
-        <input id="name" name="name" type="text" placeholder="Subject & number">
-        <br />
-        <br />
-        <label for="desc">Description:</label>
-        <input type="text" id="desc" size="50" name="desc">
-        <br>
-        <br>
-        <label for="term">Term: </label>
-        <select name="term" id="term">
-            <option th:each="term : ${terms}" th:text="${term.name}" th:value="${term.id}"></option>
-        </select>
-        <br />
-        <br />
-        Is this course currently in progress?
-        <label for="nip">No</label>
-        <input type="radio" name="inp" value="0" id="nip">
-        <label for="iip">Yes</label>
-        <input type="radio" name="inp" value="1" id="iip">
-        <br>
-        <br>
-        Is this course major related?
-        <label for="nmr">No</label>
-        <input type="radio" name="mr" value="0" id="nmr">
-        <label for="imr">Yes</label>
-        <input type="radio" name="mr" value="1" id="imr">
-        <input hidden="hidden" name="_method" value="POST">
-        <br />
-        <br />
-        <input type="submit">
-    </form>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Add Note</h2>
+                    <form th:action="@{/notes}" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="cid" class="form-label">Course:</label>
+                            <select id="cid" name="cid" class="form-select">
+                                <option th:each="course : ${courses}" th:value="${course.id}" th:text="${course.name}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content:</label>
+                            <textarea id="content" rows="5" class="form-control" name="content" placeholder="Type in what you learned today"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="file" class="form-label">File (optional):</label>
+                            <input id="file" name="file" type="file" class="form-control">
+                        </div>
+                        <input hidden="hidden" name="_method" value="POST">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Add Note</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<a th:href="@{/}">Index page</a>
+
+<div class="text-center mt-4">
+    <a th:href="@{/}" class="btn btn-secondary">Index page</a>
+</div>
 </body>
 </html>

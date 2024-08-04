@@ -5,6 +5,15 @@ public class Course {
     private String name;
     private String description;
     private Term term;
+    private boolean deletable;
+
+    public boolean isDeletable() {
+        return deletable;
+    }
+
+    public void setDeletable(boolean deletable) {
+        this.deletable = deletable;
+    }
 
     public Term getTerm() {
         return term;

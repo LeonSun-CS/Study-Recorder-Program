@@ -8,7 +8,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
     <context:component-scan base-package="com.example.*" />
-    <mvc:default-servlet-handler />
+<!--    <mvc:default-servlet-handler />-->
 
     <bean class="org.thymeleaf.spring5.view.ThymeleafViewResolver" id="templateResolver" >
         <property name="characterEncoding" value="UTF-8" />
@@ -77,28 +77,45 @@
     <bean id="jedisPool" class="redis.clients.jedis.JedisPool">
         <constructor-arg name="host" value="${redis.ip}" />
         <constructor-arg name="port" value="${redis.port}" />
+        <constructor-arg name="password" value="${redis.password}" />
+        <constructor-arg name="user" value="${redis.user}" />
     </bean>
 
     <mvc:interceptors>
         <!--        global interceptor setup-->
         <!--        <ref bean="helloWorldInterceptor" />-->
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/captcha**"/>
+<!--            <mvc:exclude-mapping path="/captcha"/>-->
+            <mvc:exclude-mapping path="/fail"/>
+            <ref bean="captchaInterceptor"/>
+        </mvc:interceptor>
 
         <mvc:interceptor>
             <mvc:mapping path="/**"/>
             <mvc:exclude-mapping path="/static/**"/>
             <mvc:exclude-mapping path="/limit_reached"/>
             <mvc:exclude-mapping path="/auth"/>
+            <mvc:exclude-mapping path="/logout"/>
+            <mvc:exclude-mapping path="/captcha"/>
             <ref bean="allRouteCheckInterceptor" />
         </mvc:interceptor>
 
         <mvc:interceptor>
             <mvc:mapping path="/**"/>
             <mvc:exclude-mapping path="/"/>
+            <mvc:exclude-mapping path="/favicon.ico"/>
+            <mvc:exclude-mapping path="/favicon.svg"/>
             <mvc:exclude-mapping path="/static/**"/>
+            <mvc:exclude-mapping path="/note/*"/>
             <mvc:exclude-mapping path="/auth"/>
             <mvc:exclude-mapping path="/notes"/>
-            <mvc:exclude-mapping path="/limit_reached"/>
+<!--            /limit_reached is an exception, handled at the interceptor-->
+<!--            <mvc:exclude-mapping path="/limit_reached"/>-->
             <mvc:exclude-mapping path="/files/**"/>
+            <mvc:exclude-mapping path="/captcha"/>
+            <mvc:exclude-mapping path="/courses-in-term/**"/>
             <ref bean="adminAuthWallInterceptor" />
         </mvc:interceptor>
 

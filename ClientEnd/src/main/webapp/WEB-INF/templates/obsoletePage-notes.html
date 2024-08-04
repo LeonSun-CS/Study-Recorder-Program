@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
+  <th:block th:insert="templates :: common-head"></th:block>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+
   <title>Notes</title>
   <!--  Prism plugin-->
   <link rel="stylesheet" href="static/css/prism.css">
   <script src="static/js/prism.js"></script>
 
-<!--  LaTex plugin-->
+  <!--  LaTex plugin-->
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script>
   <script type="text/javascript">
@@ -24,7 +26,6 @@
       },
     };
   </script>
-
 </head>
 <body>
 <div th:insert="templates :: top_info"></div>
@@ -34,7 +35,7 @@
 <div align="center">
   <div>filter</div>
   <br>
-  <form th:action="@{/notes}" method="GET">
+  <form id="queryForm" th:action="@{/notes}" method="GET">
     <label for="term">Term: </label>
     <select name="term" id="term">
       <option th:each="term : ${terms}" th:text="${term.name}" th:value="${term.id}"></option>
@@ -51,7 +52,11 @@
 <!--    <input hidden="hidden" name="_method" value="GET">-->
     <br>
     <br>
-    <input type="submit">
+    <div id="ts">
+<!--    <div class="cf-turnstile" data-sitekey="0x4AAAAAAAYlvEDpt3eHdtWz" data-callback="javascriptCallback" data-theme="light">-->
+    </div>
+    <br>
+    <input onclick="smt(event)" type="submit">
   </form>
   <br>
   <br>
@@ -68,14 +73,15 @@
       <th>Content</th>
       <th>Linked File</th>
       <th>Time Updated</th>
-      <th>Action</th>
     </tr>
     <tr th:each="note, stat : ${notes}">
       <td th:text="${stat.index} + 1" />
       <td th:text="${note.course.term.name}" />
       <td th:text="${note.course.name}" />
       <td th:text="${note.timeAdded}" />
+<!--      <td th:text="${note.content}" />-->
       <td><div style="white-space: pre-line" th:utext="${note.content}" ></div> </td>
+
       <td>
         <a th:if="${note.fileName != null}" th:href="@{/files/{cid}/{fn}(cid=${note.course.id},fn=${note.fileName})}">Click to view
           <span th:text="${#strings.toUpperCase(#strings.arraySplit(note.fileName, '.')[1])}"> </span> file
@@ -83,24 +89,23 @@
         <span th:if="${note.fileName == null}">No file uploaded for this note</span>
       </td>
       <td th:text="${note.timeUpdated}" />
-      <td>
-        <a th:href="@{/notes_admin/edit/}+${note.id}">Edit</a>
-        <a href="#" onclick="delFunc()" th:attr="did=${note.id}">Delete</a>
-        <form th:id="delForm + ${note.id}" th:action="@{/notes_admin}" method="post">
-          <input name="id" th:value="${note.id}" hidden="hidden"/>
-          <input name="_method" value="DELETE" hidden="hidden" />
-        </form>
-      </td>
     </tr>
   </table>
-  <br>
-  <br>
+  <a th:href="@{/}">Index page</a>
+
 </div>
 </body>
 <script>
-  function delFunc(){
-    document.getElementById("delForm" + event.target.getAttribute("did")).submit();
+  function smt(event) {
+    event.preventDefault();
+    var queryForm = document.getElementById("queryForm");
+    turnstile.render('#ts', {
+      sitekey: '0x4AAAAAAAYlvEDpt3eHdtWz',
+      callback: function(token) {
+        console.log(`Challenge Success ${token}`);
+        queryForm.submit();
+      },
+    });
   }
 </script>
-
 </html>

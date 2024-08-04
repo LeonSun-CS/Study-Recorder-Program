@@ -1,49 +1,83 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Term Edit Page</title>
+    <title>Course Edit Page</title>
+    <th:block th:insert="templates :: common-head"></th:block>
 </head>
 <body>
 <div th:insert="templates :: top_info"></div>
 
-
-<div align="center">
-    <h1>Edit course</h1>
-    <form th:action="@{/course}" method="post">
-        <label for="name" >Name:</label>
-        <input id="name" name="name" type="text" placeholder="Subject & number" th:value="${course.name}">
-        <br />
-        <br />
-        <label for="desc">Description:</label>
-        <input type="text" id="desc" name="desc" size="50" th:value="${course.description}">
-        <br>
-        <br>
-        <label for="term">Term: </label>
-        <select name="term" id="term">
-            <option th:each="term : ${terms}" th:text="${term.name}" th:value="${term.id}" th:selected="${term.id == course.term.id}"></option>
-        </select>
-        <br />
-        <br />
-        Is this course currently in progress?
-        <label for="nip">No</label>
-        <input type="radio" name="inp" value="0" id="nip" th:checked="${!course.inProgress}">
-        <label for="iip">Yes</label>
-        <input type="radio" name="inp" value="1" id="iip" th:checked="${course.inProgress}" >
-        <input hidden="hidden" name="id" th:value="${course.id}">
-        <br>
-        <br>
-        Is this course major related?
-        <label for="nmr">No</label>
-        <input type="radio" name="mr" value="0" id="nmr" th:checked="${!course.majorRelated}">
-        <label for="imr">Yes</label>
-        <input type="radio" name="mr" value="1" id="imr" th:checked="${course.majorRelated}">
-        <input hidden="hidden" name="_method" value="PUT">
-        <br />
-        <br />
-        <input type="submit">
-    </form>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">Edit Course</h2>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/course}" method="post">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name:</label>
+                            <input id="name" name="name" type="text" class="form-control" placeholder="Subject & number" th:value="${course.name}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="desc" class="form-label">Description:</label>
+                            <input type="text" id="desc" name="desc" class="form-control" th:value="${course.description}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="term" class="form-label">Term:</label>
+                            <select name="term" id="term" class="form-select">
+                                <option th:each="term : ${terms}" th:text="${term.name}" th:value="${term.id}" th:selected="${term.id == course.term.id}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Is this course currently in progress?</label>
+                            <div class="form-check">
+                                <input type="radio" name="inp" value="0" id="nip" class="form-check-input" th:checked="${!course.inProgress}">
+                                <label for="nip" class="form-check-label">No</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="inp" value="1" id="iip" class="form-check-input" th:checked="${course.inProgress}">
+                                <label for="iip" class="form-check-label">Yes</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Is this course major related?</label>
+                            <div class="form-check">
+                                <input type="radio" name="mr" value="0" id="nmr" class="form-check-input" th:checked="${!course.majorRelated}">
+                                <label for="nmr" class="form-check-label">No</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="mr" value="1" id="imr" class="form-check-input" th:checked="${course.majorRelated}">
+                                <label for="imr" class="form-check-label">Yes</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Deletable:</label>
+                            <div class="form-check">
+                                <input type="radio" name="deletable" id="deletableTrue" value="1" class="form-check-input">
+                                <label for="deletableTrue" class="form-check-label">True</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="deletable" id="deletableFalse" value="0" checked class="form-check-input">
+                                <label for="deletableFalse" class="form-check-label">False</label>
+                            </div>
+                        </div>
+                        <input hidden="hidden" name="id" th:value="${course.id}">
+                        <input hidden="hidden" name="_method" value="PUT">
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<a th:href="@{/}">Index page</a>
+
+<div class="text-center mt-3">
+    <a th:href="@{/}" class="btn btn-secondary">Index page</a>
+</div>
+
 </body>
 </html>

@@ -9,6 +9,15 @@ public class Note {
     private String fileName;
     private Date timeAdded;
     private Date timeUpdated;
+    private boolean deletable;
+
+    public boolean isDeletable() {
+        return deletable;
+    }
+
+    public void setDeletable(boolean deletable) {
+        this.deletable = deletable;
+    }
 
     public int getId() {
         return id;

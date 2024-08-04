@@ -24,7 +24,9 @@ public interface NoteDAO {
     Boolean update(@Param("id") Integer noteId,
                    @Param("cid") Integer courseId,
                    @Param("content") String content,
-                   @Param("fn") String filename);
+                   @Param("fn") String filename, Boolean deletable);
 
     Boolean deleteNote(@Param("id") Integer id);
+
+    Boolean isDeletable(Integer id);
 }

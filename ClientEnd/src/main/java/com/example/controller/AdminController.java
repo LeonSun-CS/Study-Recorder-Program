@@ -5,6 +5,9 @@ import com.example.service.CourseService;
 import com.example.service.NoteService;
 import com.example.service.TermService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,10 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 @Controller
 public class AdminController {
@@ -36,6 +36,8 @@ public class AdminController {
     private Quota quotaObject;
     @Autowired
     private AuthHelper authHelper;
+    @Value("${file.path}")
+    private String filePath;
 
     @RequestMapping(value = "/term", method = RequestMethod.GET)
     public ModelAndView termPage() {
@@ -84,14 +86,16 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/term", method = RequestMethod.PUT)
-    public ModelAndView termEditProcess(Integer id, String name, String date) throws ParseException {
+    public ModelAndView termEditProcess(Integer id, String name, String date,
+                                        @RequestParam(value = "deletable", required = false, defaultValue = "0") boolean deletable
+    ) throws ParseException {
         ModelAndView mv = new ModelAndView();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         Date parseddate = null;
         if (date != null && !date.isEmpty()) {
             parseddate = format.parse(date);
         }
-        boolean b = termService.editTerm(id, name, parseddate);
+        boolean b = termService.editTerm(id, name, parseddate, deletable);
         if (b) {
             mv.setViewName("redirect:/term");
         } else {
@@ -119,35 +123,21 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/term", method = RequestMethod.DELETE)
-    public ModelAndView termDelProcess(@RequestParam("id") String did) {
-        ModelAndView mv = new ModelAndView();
-        boolean b = termService.deleteById(Integer.parseInt(did));
-        if (b) {
-            mv.setViewName("redirect:/term");
-        } else {
-            mv.setViewName("fail");
-            mv.addObject("msg", "Failed to delete the term from database!");
-        }
-
-        mv.addObject("quota", quotaObject);
-        mv.addObject("auth", authHelper);
-        return mv;
+    public ResponseEntity<Map<String, String>> termDelProcess(@RequestParam("id") String did) {
+        HashMap<String, String> resMap = new HashMap<>();
+        String status = termService.deleteById(Integer.parseInt(did));
+        resMap.put("response", status);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(resMap);
     }
 
     @RequestMapping(value = "/course", method = RequestMethod.DELETE)
-    public ModelAndView courseDelProcess(@RequestParam("id") String did) {
-        ModelAndView mv = new ModelAndView();
-        boolean b = courseService.deleteById(Integer.parseInt(did));
-        if (b) {
-            mv.setViewName("redirect:/course");
+    public ResponseEntity<Map<String, String>> courseDelProcess(@RequestParam("id") String did) {
+        String status = courseService.deleteById(Integer.parseInt(did));
+        if ("success".equals(status)) {
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Collections.singletonMap("response", "success"));
         } else {
-            mv.setViewName("fail");
-            mv.addObject("msg", "Failed to delete the term from database!");
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Collections.singletonMap("response", status));
         }
-
-        mv.addObject("quota", quotaObject);
-        mv.addObject("auth", authHelper);
-        return mv;
     }
 
     @RequestMapping("/term_edit/{id}")
@@ -180,9 +170,11 @@ public class AdminController {
 
     @RequestMapping(value = "/course", method = RequestMethod.PUT)
     public ModelAndView courseEditProcess(Integer id, String name, String desc, @RequestParam("term") Integer termId,
-                                          Boolean inp, Boolean mr) {
+                                          Boolean inp, Boolean mr,
+                                          @RequestParam(value = "deletable", required = false, defaultValue = "0") Boolean deletable
+    ) {
         ModelAndView mv = new ModelAndView();
-        boolean b = courseService.updateCourse(id, name, desc, termId, inp, mr);
+        boolean b = courseService.updateCourse(id, name, desc, termId, inp, mr, deletable);
         if (b) {
             mv.setViewName("redirect:/course");
         } else {
@@ -215,7 +207,7 @@ public class AdminController {
         return mv;
     }
 
-    @RequestMapping(value = "/notes_admin", method = RequestMethod.GET)
+    /*@RequestMapping(value = "/notes_admin", method = RequestMethod.GET)
     public ModelAndView noteManagePage(@RequestParam(value = "term", required = false) Integer termId,
                                        @RequestParam(value = "course", required = false) Integer courseId,
                                        @RequestParam(value = "start", required = false)String start,
@@ -241,9 +233,9 @@ public class AdminController {
         mv.addObject("quota", quotaObject);
         mv.addObject("auth", authHelper);
         return mv;
-    }
+    }*/
 
-    @RequestMapping("/notes_admin/add")
+    @RequestMapping("/notes/add")
     public ModelAndView addNotePage() {
         ModelAndView mv = new ModelAndView("note_addition");
         mv.addObject("courses", courseService.getAllCourses());
@@ -254,7 +246,7 @@ public class AdminController {
         return mv;
     }
 
-    @RequestMapping("/notes_admin/edit/{id}")
+    @RequestMapping("/notes/edit/{id}")
     public ModelAndView editNotePage(@PathVariable Integer id) {
         ModelAndView mv = new ModelAndView("note_edit");
         mv.addObject("courses", courseService.getAllCourses());
@@ -266,7 +258,7 @@ public class AdminController {
         return mv;
     }
 
-    @RequestMapping(value = "/notes_admin", method = {RequestMethod.POST})
+    @RequestMapping(value = "/notes", method = {RequestMethod.POST})
     public ModelAndView noteAddProcess(@RequestParam("cid") Integer courseId,
                                        @RequestParam("content") String content,
                                        @RequestParam(value = "file", required = false) MultipartFile multipartFile,
@@ -281,33 +273,12 @@ public class AdminController {
 
         String filename = null; // this store the file name that's to be stored in the database
         if (multipartFile != null && !multipartFile.isEmpty()) {
-            String realPath = request.getSession().getServletContext().getRealPath("/files/" + courseId + "/");
-            // files are stored under different folders by classes
-            String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
-            String originalFilename = multipartFile.getOriginalFilename();
-            if (originalFilename !=null && !originalFilename.isEmpty()) {
-                String[] parts = originalFilename.split("\\."); // try to get the file extension
-                filename = realPath + uuid + "." + parts[parts.length - 1];
-                File file = new File(filename);
-                file.getParentFile().mkdirs();
-                while (!file.createNewFile()) {
-                    // create the file if it doesn't exist; if the file does exist,
-                    // try to create one with a new file name to avoid overwriting a file
-                    uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
-                    filename = realPath + uuid + "." + parts[parts.length - 1];
-                }
-                multipartFile.transferTo(file);
-                // because the current variable "filename" contains the whole absolute
-                // path of the file, but we only need the last portion as the real file name
-                String[] pathparts = filename.split("/");  // current variable "filename" contains the whole absolute
-                // path of the file, but we only need the last portion as the real file name
-                filename = pathparts[pathparts.length - 1];
-            }
+            filename = saveNoteFile(courseId, multipartFile, request);
         }
 
         boolean b = noteService.addNote(courseId, content, filename);
         if (b) {
-            mv.setViewName("redirect:/notes_admin");
+            mv.setViewName("redirect:/notes");
         } else {
             mv.setViewName("fail");
             mv.addObject("msg", "Failed to add the note into Notes!");
@@ -318,11 +289,12 @@ public class AdminController {
         return mv;
     }
 
-    @RequestMapping(value = "/notes_admin", method = {RequestMethod.PUT})
+    @RequestMapping(value = "/notes", method = {RequestMethod.PUT})
     public ModelAndView noteEditProcess(@RequestParam("noteid") Integer noteId,
                                         @RequestParam("cid") Integer courseId,
                                         @RequestParam("content") String content,
                                         @RequestParam(value = "file", required = false) MultipartFile multipartFile,
+                                        @RequestParam(value = "deletable", required = false, defaultValue = "0") Boolean deletable,
                                         HttpServletRequest request) throws IOException {
 
         // ********************************IMPORTANT**************************************
@@ -342,29 +314,11 @@ public class AdminController {
                 noteService.deleteFile(thisNote.getId());
             }
             // now add the new file
-            String realPath = request.getSession().getServletContext().getRealPath("/files/" + courseId + "/");
-            String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
-            String originalFilename = multipartFile.getOriginalFilename();
-            if (originalFilename !=null && !originalFilename.isEmpty()) {
-                String[] parts = originalFilename.split("\\."); // try to get the file extension
-                filename = realPath + uuid + "." + parts[parts.length - 1];
-                File file = new File(filename);
-                file.getParentFile().mkdirs();
-                while (!file.createNewFile()) {
-                    // create the file if it doesn't exist; if the file does exist,
-                    // try to create one with a new file name to avoid overwriting a file
-                    uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
-                    filename = realPath + uuid + "." + parts[parts.length - 1];
-                }
-                multipartFile.transferTo(file);
-                String[] pathparts = filename.split("/");  // current variable "filename" contains the whole absolute
-                // path of the file, but we only need the last portion as the real file name
-                filename = pathparts[pathparts.length - 1];
-            }
+            filename = saveNoteFile(courseId, multipartFile, request);
         }
-        Boolean b = noteService.update(noteId, courseId, content, filename);
+        Boolean b = noteService.update(noteId, courseId, content, filename, deletable);
         if (b) {
-            mv.setViewName("redirect:/notes_admin");
+            mv.setViewName("redirect:/notes");
         } else {
             mv.setViewName("fail");
             mv.addObject("msg", "Failed to update the note!");
@@ -373,6 +327,31 @@ public class AdminController {
         mv.addObject("quota", quotaObject);
         mv.addObject("auth", authHelper);
         return mv;
+    }
+
+    private String saveNoteFile(@RequestParam("cid") Integer courseId, @RequestParam(value = "file", required = false) MultipartFile multipartFile, HttpServletRequest request) throws IOException {
+        String filename = null;
+//        String realPath = request.getSession().getServletContext().getRealPath("/files/" + courseId + "/");
+        String realPath = filePath + courseId + "/";
+        String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
+        String originalFilename = multipartFile.getOriginalFilename();
+        if (originalFilename !=null && !originalFilename.isEmpty()) {
+            String[] parts = originalFilename.split("\\."); // try to get the file extension
+            filename = realPath + uuid + "." + parts[parts.length - 1];
+            File file = new File(filename);
+            file.getParentFile().mkdirs();
+            while (!file.createNewFile()) {
+                // create the file if it doesn't exist; if the file does exist,
+                // try to create one with a new file name to avoid overwriting a file
+                uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
+                filename = realPath + uuid + "." + parts[parts.length - 1];
+            }
+            multipartFile.transferTo(file);
+            String[] pathparts = filename.split("/");  // current variable "filename" contains the whole absolute
+            // path of the file, but we only need the last portion as the real file name
+            filename = pathparts[pathparts.length - 1];
+        }
+        return filename;
     }
 
     @RequestMapping(value = "/file", method = RequestMethod.DELETE)
@@ -384,7 +363,12 @@ public class AdminController {
         File file = new File(realPath);
         boolean delete = file.delete();
         if (noteService.deleteFile(noteId)) {
-            mv.setViewName("redirect:/notes_admin");
+            String referer = request.getHeader("Referer");
+            if (referer == null || referer.isEmpty()) {
+                mv.setViewName("redirect:/notes");
+            } else {
+                mv.setViewName("redirect:" + referer);
+            }
         } else {
             mv.setViewName("fail");
             mv.addObject("msg", "Failed to remove the file from the Notes table!");
@@ -395,29 +379,11 @@ public class AdminController {
         return mv;
     }
 
-    @RequestMapping(value = "/notes_admin", method = RequestMethod.DELETE)
-    public ModelAndView noteDelProcess(@RequestParam("id") Integer id, HttpServletRequest request){
-        ModelAndView mv = new ModelAndView();
-        Note thisNote = noteService.getNoteById(id);  // get the current note to get its associated file path
-        if (thisNote.getFileName() != null && !thisNote.getFileName().isEmpty()) {
-            // if there is a file associated with this note, delete it
-            String realPath = request.getSession().getServletContext().getRealPath("/files/" + thisNote.getCourse().getId() + "/" + thisNote.getFileName());
-            File file = new File(realPath);
-            if (!file.delete()) {
-                throw new RuntimeException("File deletion failed!");
-            }
-        }
-        Boolean b = noteService.deleteNote(id);
-        if (b) {
-            mv.setViewName("redirect:/notes_admin");
-        } else {
-            mv.setViewName("fail");
-            mv.addObject("msg", "Failed to remove the note!");
-        }
+    @RequestMapping(value = "/notes", method = RequestMethod.DELETE)
+    public ResponseEntity<Map<String, String>> noteDelProcess(@RequestParam("id") Integer id, HttpServletRequest request){
 
-        mv.addObject("quota", quotaObject);
-        mv.addObject("auth", authHelper);
-        return mv;
+        String status = noteService.deleteNote(id);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Collections.singletonMap("response", status));
     }
 
 }

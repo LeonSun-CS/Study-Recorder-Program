@@ -6,6 +6,15 @@ public class Term {
     private int id;
     private String name;
     private Date startDate;
+    private boolean deletable;
+
+    public boolean isDeletable() {
+        return deletable;
+    }
+
+    public void setDeletable(boolean deletable) {
+        this.deletable = deletable;
+    }
 
     public int getId() {
         return id;

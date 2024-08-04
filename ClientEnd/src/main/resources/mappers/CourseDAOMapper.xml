@@ -10,8 +10,40 @@
         <result property="description" column="description" />
         <result property="inProgress" column="in_progress" />
         <result property="majorRelated" column="major_related" />
+        <result property="deletable" column="deletable" />
         <association property="term" column="term_id" javaType="term" select="selectTerm" />
     </resultMap>
+
+    <select id="isDeletable" resultType="boolean">
+        select
+            deletable
+        from
+            courses
+        where
+            id = #{id}
+    </select>
+
+    <select id="checkNotesExistForCourse" resultType="boolean">
+        select exists(
+            select 1
+            from
+                notes
+            where
+                course_id = #{course_id}
+        )
+        as
+            value_exist
+    </select>
+
+    <select id="getCoursesByTerm" resultMap="courseMap">
+        select
+            id,
+            name
+        from
+            courses
+        where
+            term_id = #{term_id}
+    </select>
     <select id="getAllCourses" resultMap="courseMap" >
         select
             courses.id,
@@ -20,6 +52,7 @@
             courses.term_id,
             courses.in_progress,
             courses.major_related,
+            courses.deletable,
             terms.start_date
         from
             courses
@@ -45,9 +78,6 @@
         delete from courses where id = #{id}
     </delete>
 
-    <select id="getById" resultMap="courseMap">
-        select * from courses where id = #{id}
-    </select>
     <update id="updateCourse">
         update
             courses
@@ -56,7 +86,8 @@
             description = #{desc},
             term_id = #{termId},
             in_progress = #{inp},
-            major_related = #{mr}
+            major_related = #{mr},
+            deletable = #{deletable}
         where
             id = #{id}
     </update>

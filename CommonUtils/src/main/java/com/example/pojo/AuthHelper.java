@@ -2,21 +2,16 @@ package com.example.pojo;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
+//import org.springframework.web.context.annotation.SessionScope;
 
 
 @Component
 @RequestScope
+//@SessionScope
 public class AuthHelper {
-    public String sessionId;
-    public boolean authed;
-
-    @Override
-    public String toString() {
-        return "AuthHelper{" +
-                "sessionId='" + sessionId + '\'' +
-                ", authed=" + authed +
-                '}';
-    }
+    private String sessionId;
+    private boolean authed = false;
+//    private boolean captchaPassed;
 
     public String getSessionId() {
         return sessionId;
@@ -33,4 +28,19 @@ public class AuthHelper {
     public void setAuthed(boolean authed) {
         this.authed = authed;
     }
+
+    @Override
+    public String toString() {
+        return "AuthHelper{" +
+                "sessionId='" + sessionId + '\'' +
+                ", authed=" + authed +
+                '}';
+    }
+//    public boolean isCaptchaPassed() {
+//        return captchaPassed;
+//    }
+
+//    public void setCaptchaPassed(boolean captchaPassed) {
+//        this.captchaPassed = captchaPassed;
+//    }
 }

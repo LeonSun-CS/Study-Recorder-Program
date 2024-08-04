@@ -21,15 +21,21 @@ public class AdminAuthWallInterceptor implements HandlerInterceptor {
     AuthHelper authHelper;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String sid = request.getSession().getId();
-        authHelper.setSessionId(sid);
+        if ("/limit_reached".equals(request.getRequestURI())) {
+            // this URI is allowed to be accessed without authentication, and it doesn't
+            // go through the quota check, where authHelper's sessionId is set
+            // so, we need to set it explicitly here
+            authHelper.setSessionId(request.getSession().getId());
+            return true;
+        }
 
         try (Jedis jedis = jedisPool.getResource()) {
 
-            String status = jedis.get("sid-" + sid);
+            String status = jedis.get("sid-" + authHelper.getSessionId());
             if (status == null) {
                 authHelper.setAuthed(false);
-                response.sendRedirect("/auth");
+                String returnUrl = request.getRequestURI();
+                response.sendRedirect("/auth" + (returnUrl != null && !returnUrl.isEmpty() ? "?returnUrl=" + returnUrl : ""));
                 return false;
             }
 

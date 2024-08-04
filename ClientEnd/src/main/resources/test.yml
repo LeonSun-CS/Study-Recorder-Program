@@ -1,0 +1,82 @@
+version: '3.8'
+
+
+services:
+#  sudo docker run --rm --name my-nginx -v /www:/www -v /etc/letsencrypt:/etc/letsencrypt -v /home/leonSun/temp/docker/nginx/conf/nginx.conf:/etc/nginx/nginx.conf -p 80:80 -p 443:443 -d nginx:1.18.0
+#  need to change the "upstream" in nginx.conf to the service name of tomcat
+  nginx:
+    image: nginx:1.18.0
+    container_name: my-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - /www:/www
+      - /etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - tomcat
+    networks:
+      - web_network
+
+  # sudo docker run -it --rm --name my-tomcat -v /home/leonSun/temp/files/:/usr/local/tomcat/files -v /home/leonSun/temp/docker/tomcat/webapps:/usr/local/tomcat/webapps tomcat:9.0.85
+  # -p 8080:8080, we don't need to expose the port for tomcat, because we'll be using port 80 for nginx later for web access
+  tomcat:
+    image: tomcat:9.0.85
+    container_name: my-tomcat
+#    ports:
+#      - "8080:8080"
+    volumes:
+      - ./tomcat/webapps:/usr/local/tomcat/webapps
+#     todo: change the host directory to the actual path of the files
+      - ./files:/usr/local/tomcat/files
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - JAVA_OPTS=-Dnetworkaddress.cache.ttl=0 -Dnetworkaddress.cache.negative.ttl=0
+#      - MYSQL_HOST=mysql
+#      - MYSQL_USER=root
+#      - MYSQL_PASSWORD=secret
+#      - MYSQL_DATABASE=myapp
+#      - REDIS_HOST=redis
+    networks:
+      - web_network
+      - backend_network
+
+#  sudo docker run -d --rm -p 3306:3306 -e MYSQL_ROOT_PASSWORD='vaqneb-Rucgar-turfe6' --name my-mysql -v /home/leonSun/temp/docker/mysql/backup-file:/docker-entrypoint-initdb.d mysql:8.4.2
+#  If the dump file contains user information (for example when it's all-database dump), we need to use the same user name and password as the dump file for access
+  mysql:
+    image: mysql:8.4.2
+    container_name: my-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 'vaqneb-Rucgar-turfe6'
+    volumes:
+      - ./mysql/backup-file:/docker-entrypoint-initdb.d
+    networks:
+      - backend_network
+
+#docker run -d --rm --name my-redis -v /home/leonSun/temp/docker/redis/conf:/usr/local/etc/redis/ redis:7.2.5 redis-server /usr/local/etc/redis/redis.conf
+#  -p 6379:6379 we don't need external user to access redis, so we don't need to expose the port
+  redis:
+    image: redis:7.2.5
+    container_name: my-redis
+    volumes:
+      - ./redis/conf:/usr/local/etc/redis/
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    networks:
+        - backend_network
+
+networks:
+    web_network:
+    backend_network:
+      driver: bridge
+
+# Important: to free up space
+# sudo docker system prune
+# sudo docker volume prune
+
+
+
+
+

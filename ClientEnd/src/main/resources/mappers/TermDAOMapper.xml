@@ -4,6 +4,36 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.dao.TermDAO">
 
+    <select id="checkCoursesExistForTerm" resultType="boolean">
+        select
+            exists(
+                select
+                    1
+                from
+                    courses
+                where
+                    term_id = #{id}
+            ) as value_exists
+    </select>
+
+    <select id="isDeletable" resultType="boolean">
+        select
+            deletable
+        from
+            terms
+        where
+            id = #{id}
+    </select>
+
+    <update id="setDeletable">
+        update
+            terms
+        set
+            deletable = #{deletable}
+        where
+            id = #{id}
+    </update>
+
     <select id="getAllTerms" resultType="term">
         select
             *
@@ -33,7 +63,8 @@
             terms
         <set>
             name = #{name},
-            start_date = #{startDate}
+            start_date = #{startDate},
+            deletable = #{deletable}
         </set>
         where
             id = #{id}

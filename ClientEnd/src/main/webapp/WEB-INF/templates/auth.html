@@ -1,23 +1,59 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
     <title>Authentication</title>
+    <th:block th:insert="templates :: common-head"></th:block>
+    <link rel="stylesheet" href="https://www.leon-sun.com/static/css/study_recorder/auth.css">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
-<!--<div th:insert="templates :: top_info"></div>-->
-
-<h1>Welcome, admin</h1>
-<form th:action="@{/auth}" method="post">
-    <label for="username">Username: </label>
-    <input type="text" required id="username" name="username" placeholder="username" autocomplete="username">
-    <br>
-    <br>
-    <label for="password">Password: </label>
-    <input type="password" required id="password" name="password" placeholder="password" autocomplete="current-password">
-    <br>
-    <br>
-    <input type="submit">
-</form>
+<div class="login-container">
+    <img style="margin-top: 10px; margin-bottom: 0px;" src="https://www.leon-sun.com/static/miscellaneous/study_recorder/profile-icon.png" alt="User Icon">
+    <h2>Login</h2>
+    <form th:action="@{/auth}" method="post" id="auth-form">
+        <input type="text" id="username" name="username" class="input-field" placeholder="Username"  autocomplete="username" required>
+        <div class="password-container">
+            <input type="password"  name="password" autocomplete="current-password" class="input-field" placeholder="Password" id="passInput" required>
+            <img src="https://www.leon-sun.com/static/miscellaneous/study_recorder/show-pw-icon.png" id="showPassBtn" alt="Show Password Icon">
+        </div>
+        <!--             <div class="remember-me">
+                        <label><input type="checkbox"> Remember me</label>
+                        <a href="#">Forgot password?</a>
+                    </div> -->
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAAYlvEDpt3eHdtWz" data-callback="javascriptCallback" data-theme="light"></div>
+<!--        <div class="cf-turnstile" data-sitekey="0x4AAAAAAAYlvEDpt3eHdtWz" data-callback="javascriptCallback" data-theme="light"></div>-->
+        <input type="hidden" name="returnUrl" th:if="${returnUrl != null and !#strings.isEmpty(returnUrl)}" th:value="${returnUrl}" />
+        <button type="submit" class="login-button">LOGIN</button>
+    </form>
+</div>
 </body>
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", (event) => {
+        const passInput = document.getElementById("passInput");
+        const showPassBtn = document.getElementById("showPassBtn");
+        showPassBtn.addEventListener("mousedown", ()=>{
+            passInput.type = 'text';
+        });
+        showPassBtn.addEventListener("mouseup", ()=>{
+            passInput.type = 'password';
+        });
+        showPassBtn.addEventListener("touchstart", ()=>{
+            passInput.type = 'text';
+        });
+        showPassBtn.addEventListener("touchend", ()=>{
+            passInput.type = 'password';
+        });
+    });
+
+    document.getElementById('auth-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const turnstileResponse = document.querySelector('.cf-turnstile input[name="cf-turnstile-response"]').value;
+        if (!turnstileResponse) {
+            alert('Please complete the CAPTCHA.');
+            return;
+        }
+
+        this.submit();
+    });
+</script>
 </html>

@@ -24,5 +24,9 @@ public interface CourseDAO {
                          @Param("desc") String desc,
                          @Param("termId") Integer termId,
                          @Param("inp") Boolean inp,
-                         @Param("mr") Boolean mr);
+                         @Param("mr") Boolean mr,
+                         @Param("deletable") Boolean deletable);
+
+    boolean checkNotesExistForCourse(@Param("course_id") Integer id);
+    boolean isDeletable(@Param("id") Integer id);
 }

@@ -16,15 +16,26 @@ public class TermService {
         return termDAO.getAllTerms();
     }
     public boolean addTerm(String name, Date date) {return termDAO.addTerm(name, date);}
-    public boolean deleteById(Integer id){
-        return termDAO.deleteTermById(id);
+    public String deleteById(Integer id){
+        // first check preconditions to delete:
+        // 1. no course is associated with this term
+        if (termDAO.checkCoursesExistForTerm(id)) {
+            return "couldn't delete term because there are courses associated with it";
+        }
+        // 2. the deletable data is set to true
+        if (!termDAO.isDeletable(id)) {
+            return "couldn't delete term because the term is not deletable";
+        }
+        termDAO.deleteTermById(id);
+        return "success";
     }
 
     public Term getById(Integer id) {
         return termDAO.getById(id);
     }
 
-    public boolean editTerm(Integer id, String name, Date date) {
-        return termDAO.editTerm(id, name, date);
+    public boolean editTerm(Integer id, String name, Date date, boolean deletable) {
+        return termDAO.editTerm(id, name, date, deletable);
     }
+
 }
