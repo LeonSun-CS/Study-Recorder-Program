@@ -1,0 +1,15 @@
+FROM mysql:8.0-debian
+
+RUN apt-get update && apt-get install -y cron
+RUN #apk update && apk add cron
+
+# copy cron tasks file to the container so that it can be loaded by cron
+COPY ./mycrontab /etc/cron.d/mycrontab
+RUN chmod 0644 /etc/cron.d/mycrontab
+# create directory for backups
+RUN mkdir -p /backups
+RUN crontab /etc/cron.d/mycrontab
+
+RUN touch /var/log/cron.log
+
+CMD cron && tail -f /var/log/cron.log & docker-entrypoint.sh mysqld

@@ -1,0 +1,180 @@
+RabbitMQ acts as a message broker or queue manager; rule of thumb: first in first out (FIFO).
+Functions: asynchrnous processing, decoupling complex services, balancing peak and trough periods.
+
+<div style='border-style: dashed; border-color: orange'>The <b>Pareto Principle</b>, or the 80/20 rule, states that for most events, roughly 80% of the effects come from 20% of the cause. </div>
+With this, the number of needed machines is Query per Second during peak / QPS of each machine. Query per Second during peak can be estimated: (total Pageview * 80%) / (total seconds in a day * 20%)
+
+Terms:
+QPS: query per second
+PV: pageview / clicks
+UV: unique visitor
+PR: page rank (for importance)
+
+AMQP and JMS are two standards of messaging systems. <b>AMQP</b>, advanced message queuing protocol, is binary wire-level; where <b>JMS</b>, JavaMessage Service, operates at application level.
+
+RabbitMQ working mode:
+1. one provider and one consumer (provider------queue------consumer)
+2. one provider and multiple consumers; each message is only assigned to one single consumer
+(provider------queue------consumer1
+------consumer2)
+3. one provider, one exchange, and multiple consumers: the provider connects to the exchange, and the exchange cannot store the messages but only handles how messages are being distributed according to three modes:
+(provider------exchange------queue------consumer1
+------queue------consumer2;
+so, the providers only need to declare the exchange and don't need to declare queues, good for decoupling; and only consumers declare queues and bind them to the exchange)
+&nbsp;&nbsp;<b>Fanout</b> (broadcast),
+&nbsp;&nbsp;<b>Direct</b> (to the queue with the specified routing key),
+&nbsp;&nbsp;<b>Topic</b> (to the queues that matches routing wildcard patterns, where # matches 0 or more <b>word(s)</b>, not character(s), and that * matches exactly 1 <b>word</b>)
+
+Process to create a RabbitMQ producer without an exchange (in main method):
+1. create a ConnectionFactory, and set host, port, virtual host, username, and password
+2. get new connection from the ConnectionFactory instance
+3. create channel from the connection
+4. declare a queue with the channel (parameters: String queue, Boolean durable, Boolean exclusive, Boolean autodelete, Map&lt;String, Object&gt; arguments)
+5. basic publish the channel (parameters: String exchange, String routingKey, AMQP.BasicProperties props, byte[] body); this is to put a message into the queue
+6. close the channel and connection
+The environment setup for the simple consumer is basically the same, except that basicPublish() needs to be changed to basicConsume().  We override handleDelivery method in <code class="language-java">new DefaultConsumer(channel){}</code> to create a consumer instance.
+
+<div style='border-style: dashed; border-color: orange'>Side note on Maven:
+    For a depended Maven module to be successfully accessed by another module, this depended Maven module needs to have its classes properly put in packages, rather than directly under the <i>src/main/java/</i> directory.</div>
+
+To use the fanout (publish/subscribe) mode, the provider needs to declare an exchange, and the consumers need to declare their own queues and bind the queue to the exchange using <code class="language-java">channel.queueBind(String queue, String exchange, String routingKey)</code>, instead of <i>exchangeBind(x,x,x...)</i>.
+
+Topic mode routing key match examples:
+1. item.# can match: item.insert.abc, item.insert
+2. item.* can only match: item.insert
+
+
+
+
+--------------------------------------------------------------------------------------------
+Spring messaging with RabbitMQ:
+1. dependencies: spring-context, spring-boot-starter-amqp, junit 4, spring-test; and Maven plugin: maven-compiler-plugin
+2. properties file: RabbitMQ host, port, username, password, and virtual host
+3. load conf file, and initiate relevant rabbit objects; in "spring-rabbitmq.xml": <pre><code class="language-xml">
+&lt;bean&gt;
+	&lt;!-- to import configuration settings from the properties file --&gt;
+	&lt;context: property-placeholder location="classpath:rabbitmq.properties" /&gt; 
+&lt;!-- define RabbitMQ connectionFactory --&gt;
+	&lt;rabbit:connection-factory id="connectionFactory" host="${rabbitmq.host}"
+			port="${rabbitmq.port}"
+			username="${rabbitmq.username}"
+			password="${rabbitmq.password}"
+			virutal-host="${rabbitmq.virtual-host}" /&gt;
+
+	&lt;!-- define RabbitAdmin object, for managing exchange and queues --&gt;
+	&lt;rabbit:admin connection-factory="connectionFactory" /&gt;
+
+	&lt;rabbit:queue id="spring_queue" name="spring_queue" auto-declare="true" /&gt;
+
+	&lt;!-- define 3 types of exchanges --&gt;
+	&lt;!-- 1. fanout --&gt;
+	&lt;rabbit:fanout-exchange id="spring_fanout_exchange" name="spring_fanout_exchange" auto-declare="true"&gt;
+		&lt;rabbit:bindings&gt;
+			&lt;rabbit:binding queue="queue1" /&gt;
+			&lt;rabbit:binding queue="queue2" /&gt;
+		&lt;/rabbit:bindings&gt;
+	&lt;/rabbit:fanout-exchange&gt;
+
+	&lt;!-- 2. topic --&gt;
+	&lt;rabbit:topic-exchange id="spring_topic_exchange" name="spring_topic_exchange" auto-declare="true"&gt;
+		&lt;!-- bindings --&gt;
+	&lt;/rabbit:topic-exchange&gt;
+
+	&lt;!-- This rabbitTemplate object can send messages --&gt;
+	&lt;rabbit: template id="rabbitTemplate" connection-factory="connectionFactory" /&gt;
+&lt;/bean&gt;
+</code></pre>
+<u>Note</u>: the settings above are for publishers; to configure a consumer, we need to add a listener:
+<pre><code class="language-xml">
+&lt;bean&gt; class="com.example.spring.rabbitmq.listener.SimpleListener" id="simpleListener"&lt;/bean&gt; 
+&lt;!--
+	This SimpleListener bean is an instance of our implementation of MessageListener
+--&gt;
+
+&lt;rabbit:listener-container connection-factory="connectionFactory"&gt;
+	&lt;rabbit:listerner ref="simpleListener" queue-names="spring-simple-queue&gt;&lt;/rabbit:listener&gt;
+&lt;/rabbit:listener-container&gt;
+</code></pre>
+4.1 to send a message, <code class="language-java">rabbit.Template.convertAndSend(x,x,...)</code>
+4.2 to receive a message, create an implementation class of <code class="language-java">MessageListener</code>, and then implement its onMessage(Message message) method. (here we assume our implementation class as "SimpleListener")
+
+5. Optional: to test:
+<pre><code class="language-java">
+@RunWith(SpringRunner.class)
+@ContextConfiguration(locations="classpath:spring-rabbitmq.xml")
+public class ConsumerTest {
+	@Test
+	public void testConsume() {
+		while (true){}
+		// this infinite loop keeps the listener alive
+	}
+}</code></pre>
+
+During the communication of publishing and consuming messages, messages can be lost because the exchange cannot store data, but we expect all the messages are delivered successfully and are never lost. To ensure reliable deliveries, there are two ways supported by RabbitMQ: <b>confirm</b>, and <b>return</b>.
+The chain of delivery: producer-----&gt;RabbitMQ_broker-----&gt;exchange-----&gt;queue-----&gt;consumer
+1. When a producer sends a message to an exchange, it can request confirmation (acknowledgment) from RabbitMQ that the message has been successfully received and processed. (from the broker to the exchange)
+2. When a producer sends a message to an exchange with mandatory routing (using channel.basicPublish with mandatory=true), RabbitMQ checks if the message can be routed to any queue. (from the exchange to the queue(s))
+To enable in spring boot:
+1. add the attributes to the connectionFactory bean: <code>publisher-confirm="true" publisher-returns="true"</code>.
+2.1 confirm callback code: <pre><code class="language-java">
+// called no matter whether the delivery is successful
+rabbitTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback() {
+	@Override
+	public void confirm(CorrelationData correlationData, Boolean ack, String cause) {
+		// cause is the reason of success/failure
+		if (ack) {
+			// successfully received by the exchange
+		} else {
+			// failed
+		}
+	}
+}</code></pre>
+2.2 return callback code: <pre><code class="language-java">
+rabbitTemplate.setMandatory(true);  
+// mandatory routing allows the producer to request that the broker (RabbitMQ 
+// server) returns a message if it cannot be routed to any queue
+
+// different from confirmCallback, the returnCallback is only called when failed
+rabbitTemplate.setReturnCallback(new RabbitTemplate.ReturnCallback() {
+	@Override
+	public void returnMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
+		// to be executed
+	}
+    }</code></pre>
+3. time to <i>coverAndSend</i>
+
+When a consumer acknowledges a message in a queue, the message will no longer exist in the queue, whereas when the consumer doesn't acknowledge the message, the message is returned to the queue: 
+1. change the acknowledge attribute of connectionFactory to "manual"; and add the listener below to the listener container
+2. code:
+<pre><code class="language-java">
+public class AckListener implements ChannelAwareMessageListener {
+	@Override
+	public void onMessage(Message message, Channel channel) throws Exception {
+		// to acknowledge; deliveryTag can be retrieved from message.getMessageProperties().getDeliveryTag()
+		channel.basicAck(long deliveryTag, Boolean multiple);
+
+		// when accidents happen and we want to return the message to the queue
+		channel.basicNack(long deliveryTag, Boolean multiple, Boolean requeue);
+	}
+}</code></pre>
+
+By default, a consumer takes all messages at once; we can set the limit of messages it stages (prefetch, move from the queue before execution), to coordinate the capability of message handlers. To achieve this function, we only need to add the attribute "prefetch=a_number" in the tag "rabbit:listener-container". This setting restricts the number of messages in the "unacked/unacknowledged" status. (The status are: Ready---&gt;Unacked---&gt;consumed.) When a message is acknowledged (consumed), the consumer takes another one from the queue and keeps the number of messages in Unacked the same. 
+
+3 cases when a message becomes a <b>dead letter</b>: 
+1. a message arrives at a queue that is at its full capacity; 
+2. the consumer decided to basicNack/basicReject with requeue parameter set as false;
+3. a message reaches its ttl limit
+
+There are 3 ways to deal with dead letters: 
+1. abandon
+2. record dead letters for later analysis and handling
+3. (most commonly adopted) push dead letters to DLX (dead letter exchange), where an application dedicated to handle dead letters can reach 
+
+DLX receives messages from the originating queue, so we can treat the originating queue as the provider. Therefore, DLX needs to be bound to the provider queue by adding these entries to queue-arguments: x-dead-letter-exchange, and x-dead-letter-routing-key
+
+By default, a message is ready to be consumed once it arrives in the queue, but sometimes we want our message to be handled at a later time. However, RabbitMQ does NOT support delayed messages, but the accepted solution was to use a mix of <i>message TTL</i> and <i>Deal Letter Exchange</i>. The big idea is: 
+provider----&gt;exchange----&gt;Queue with desired TTL and no consumer----&gt;DLX (guaranteed to arrive here after TTL)----&gt;Queue----&gt;Consumer
+
+Configure RabbitMQ in springboot: 
+Provider:  with <b><u>spring.rabbitmq.host/port/username/password/virtual-host</u></b> configurations handy in application.yml (or .properties), create a configuration class (with @SpringBootConfiguration or @Configuration), with Exchange, Queue, and Binding beans created, where we use ExchangeBuilder, QueueBuilder, and BindingBuilder. Then ConnectionFactory, Connection, Channel, and RabbitTemplate instances will be automatically created for us to send messages. 
+Consumer: with rabbitmq.host/port/username/password/virtual-host configurations handy in application.yml (or .properties), create a spring component class for listener, and include a method with Message param as its argument-this method should have @RabbitListener(queues = "queue_name") annotation. 

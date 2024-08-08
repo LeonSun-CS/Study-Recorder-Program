@@ -91,4 +91,17 @@
         where
             id = #{id}
     </update>
+    <select id="getById" resultMap="com.example.dao.CourseDAO.courseMap" >
+        select
+            id,
+            name,
+            description,
+            term_id,
+            in_progress,
+            major_related
+        from
+            courses
+        where
+            id = #{id}
+    </select>
 </mapper>

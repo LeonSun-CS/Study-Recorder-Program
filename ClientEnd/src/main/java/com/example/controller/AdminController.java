@@ -318,7 +318,7 @@ public class AdminController {
         }
         Boolean b = noteService.update(noteId, courseId, content, filename, deletable);
         if (b) {
-            mv.setViewName("redirect:/notes");
+            mv.setViewName("redirect:/note/" + noteId);
         } else {
             mv.setViewName("fail");
             mv.addObject("msg", "Failed to update the note!");

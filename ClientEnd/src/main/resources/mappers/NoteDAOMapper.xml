@@ -13,6 +13,19 @@
 <!--        select * from notes-->
 <!--    </select>-->
 
+    <select id="getCourseById" resultMap="com.example.dao.CourseDAO.courseMap" >
+        select
+            id,
+            name,
+            description,
+            term_id,
+            in_progress,
+            major_related
+        from
+            courses
+        where
+            id = #{id}
+    </select>
     <select id="getNotesByFilter" resultMap="noteMap">
         select
             notes.id,
@@ -50,19 +63,7 @@
         order by
             notes.time_added desc
     </select>
-    <select id="getCourseById" resultMap="com.example.dao.CourseDAO.courseMap" >
-        select
-            courses.id,
-            courses.name,
-            courses.description,
-            courses.term_id,
-            courses.in_progress,
-            courses.major_related
-        from
-            courses
-        where
-            id = #{id}
-    </select>
+
 
     <insert id="addNote">
         insert into
