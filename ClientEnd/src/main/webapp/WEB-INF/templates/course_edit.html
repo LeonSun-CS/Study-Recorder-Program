@@ -22,7 +22,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="desc" class="form-label">Description:</label>
-                            <input type="text" id="desc" name="desc" class="form-control" th:value="${course.description}">
+                            <textarea id="desc" name="desc" class="form-control" th:text="${course.description}" rows="5"></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="term" class="form-label">Term:</label>

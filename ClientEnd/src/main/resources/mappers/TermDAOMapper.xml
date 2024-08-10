@@ -39,6 +39,8 @@
             *
         from
             terms
+        order by
+            start_date desc
     </select>
 
     <insert id="addTerm">

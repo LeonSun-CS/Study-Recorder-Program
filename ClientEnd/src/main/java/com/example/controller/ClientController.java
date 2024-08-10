@@ -138,12 +138,6 @@ public class ClientController {
         mv.addObject("quota", quotaObject);
         mv.addObject("auth", authHelper);
 
-/*        boolean filtered = false;  // the flag to mark if a filter is used
-        // filtered is true if any filter is invoked
-        if (termId != null || courseId != null || (start != null && !start.isEmpty()) ||
-                (end != null && !end.isEmpty())
-        ) filtered = true;
-        */
         Date startDate;
         Date endDate = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);

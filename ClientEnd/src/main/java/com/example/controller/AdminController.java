@@ -66,6 +66,12 @@ public class AdminController {
 
     @RequestMapping(value = "/term", method = RequestMethod.POST)
     public ModelAndView termAddProcess(String name, String date) throws ParseException {
+        // check if name and date are null
+        if (name == null || name.isEmpty() || date == null || date.isEmpty()) {
+            ModelAndView mv = new ModelAndView("fail");
+            mv.addObject("msg", "Name and date cannot be empty!");
+            return mv;
+        }
         ModelAndView mv = new ModelAndView();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         Date parseddate = null;
@@ -107,7 +113,9 @@ public class AdminController {
 
     @RequestMapping(value = "/course", method = RequestMethod.POST)
     public ModelAndView courseAddProcess(String name, String desc, @RequestParam("term") Integer termId,
-                                         Boolean inp, Boolean mr) {
+                                         @RequestParam(value = "inp", defaultValue = "0") Boolean inp,
+                                         @RequestParam(value = "mr", defaultValue = "0") Boolean mr) {
+        // check if name, desc, termId are null
         ModelAndView mv = new ModelAndView();
         boolean b = courseService.addCourse(name, desc, termId, inp, mr);
         if (b) {
@@ -264,6 +272,13 @@ public class AdminController {
                                        @RequestParam(value = "file", required = false) MultipartFile multipartFile,
                                        HttpServletRequest request
                                        ) throws IOException {
+        // check if the course ID is null, and send the fail page if so
+        if (courseId == null) {
+            ModelAndView mv = new ModelAndView("fail");
+            mv.addObject("msg", "Course ID is null!");
+            return mv;
+        }
+
         ModelAndView mv = new ModelAndView();
 
         // *******************************************************************************
