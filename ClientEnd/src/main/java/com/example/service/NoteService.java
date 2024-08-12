@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.dao.NoteDAO;
 import com.example.pojo.Note;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.ServletContext;
@@ -16,6 +17,8 @@ public class NoteService {
     NoteDAO noteDAO;
     @Autowired
     ServletContext servletContext;
+    @Value("${file.path}")
+    private String filePath;
 
     public List<Note> getNotesByFilter(Integer termId, Integer courseId, Date start, Date end) {
         termId = (termId == 0) ? null : termId;
@@ -49,7 +52,8 @@ public class NoteService {
         // get the current note to get its associated file path, if any
         if (thisNote.getFileName() != null && !thisNote.getFileName().isEmpty()) {
             // if there is a file associated with this note, delete it
-            String realPath = servletContext.getRealPath("/files/" + thisNote.getCourse().getId() + "/" + thisNote.getFileName());
+//            String realPath = servletContext.getRealPath("/files/" + thisNote.getCourse().getId() + "/" + thisNote.getFileName());
+            String realPath = filePath + thisNote.getCourse().getId() + "/" + thisNote.getFileName();
             File file = new File(realPath);
             if (!file.delete()) {
                 return "File deletion failed!";

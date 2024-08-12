@@ -262,7 +262,7 @@
             // const response = await fetch(`https://localhost:8080/courses-in-term/${termId}`);
             const response = await fetch(fetchUrl + `${termId}`);
             const courseText = await response.text();
-            const jsonData = JSON.parse(JSON.parse(courseText));
+            const jsonData = JSON.parse(courseText);
             try {
 
                 // Clear existing options

@@ -31,7 +31,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="file" class="form-label">File (optional):</label>
-                            <input id="file" name="file" type="file" class="form-control" />
+                            <input id="file" name="file" type="file" class="form-control"/>
                             <a th:if="${note.fileName != null}" href="#" th:attr="nid=${note.id}" onclick="delFunc()" class="btn btn-link">Delete the current file</a>
                         </div>
                         <input hidden="hidden" name="noteid" th:value="${note.id}">

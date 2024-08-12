@@ -319,11 +319,12 @@ public class AdminController {
         ModelAndView mv = new ModelAndView();
         Note thisNote = noteService.getNoteById(noteId);
         String filename = null;  // the filename to be updated to the database
-        if (!multipartFile.isEmpty()) {
+        if (multipartFile != null && !multipartFile.isEmpty()) {
             // if a file is uploaded, delete the previous file if exists AND then add the new file to database
             if (thisNote.getFileName() != null && !thisNote.getFileName().isEmpty()) {
                 // delete previous file
-                String realPath = request.getSession().getServletContext().getRealPath("/files/" + thisNote.getCourse().getId() + "/" + thisNote.getFileName());
+//                String realPath = request.getSession().getServletContext().getRealPath("/files/" + thisNote.getCourse().getId() + "/" + thisNote.getFileName());
+                String realPath = filePath + thisNote.getCourse().getId() + "/" + thisNote.getFileName();
                 File file = new File(realPath);
                 file.delete();
                 noteService.deleteFile(thisNote.getId());
@@ -374,7 +375,8 @@ public class AdminController {
                                    @RequestParam("forNote") Integer noteId,
                                    HttpServletRequest request){
         ModelAndView mv = new ModelAndView();
-        String realPath = request.getSession().getServletContext().getRealPath("/files/" + path);  // get the absolute path of the file path
+        String realPath = filePath + path;
+//        String realPath = request.getSession().getServletContext().getRealPath("/files/" + path);  // get the absolute path of the file path
         File file = new File(realPath);
         boolean delete = file.delete();
         if (noteService.deleteFile(noteId)) {

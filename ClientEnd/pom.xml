@@ -88,11 +88,11 @@
             <artifactId>commons-fileupload</artifactId>
         </dependency>
 
-        <!-- fastjson -->
+<!--        &lt;!&ndash; fastjson &ndash;&gt;
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-        </dependency>
+        </dependency>-->
 
         <!-- 日志 -->
         <dependency>

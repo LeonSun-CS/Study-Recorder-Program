@@ -2,17 +2,12 @@ package com.example.controller;
 
 import com.example.pojo.*;
 import com.example.service.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -22,13 +17,10 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.params.SetParams;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -38,7 +30,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 @Controller
@@ -328,12 +319,12 @@ public class ClientController {
     }*/
 
     @RequestMapping("/favicon.ico")
-    public ResponseEntity<byte[]> getLogo(HttpServletRequest request) {
+    public ResponseEntity<InputStreamResource> getLogo(HttpServletRequest request) throws FileNotFoundException {
         return getFileHelper(filePath + "favicon.ico", request);
     }
 
     @RequestMapping("/favicon.svg")
-    public  ResponseEntity<byte[]> getLogoForSafariTabs(HttpServletRequest request) {
+    public ResponseEntity<InputStreamResource> getLogoForSafariTabs(HttpServletRequest request) throws FileNotFoundException {
         return getFileHelper(filePath + "favicon.svg", request);
     }
 
@@ -391,35 +382,60 @@ public class ClientController {
      * from the server and send it to the client.
      */
     @GetMapping("/files/{classId}/{fileName}")
-    public ResponseEntity<byte[]> getFile(@PathVariable("classId") Integer classId,
+    public ResponseEntity<InputStreamResource> getFile(@PathVariable("classId") Integer classId,
                         @PathVariable("fileName") String fileName,
-                        HttpServletRequest request) {
+                        HttpServletRequest request) throws FileNotFoundException {
         return getFileHelper(filePath + classId + "/" + fileName, request);
     }
 
-    private ResponseEntity<byte[]> getFileHelper(@PathVariable String fileFullPath, HttpServletRequest request) {
+    private ResponseEntity<InputStreamResource> getFileHelper(@PathVariable String fileFullPath, HttpServletRequest request) throws FileNotFoundException {
         File file = new File(fileFullPath);
 
         if (!file.exists()) {
             return ResponseEntity.notFound().build();
         }
-        byte[] fileContent = new byte[0];
-        try {
-            fileContent = Files.readAllBytes(file.toPath());
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        MediaType mediaType = MediaTypeFactory.getMediaType(file.getName()).orElse(MediaType.APPLICATION_OCTET_STREAM);
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(mediaType);
-        headers.setContentLength(file.length());
-        // Add cache control headers if appropriate
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getName() + "\"");
+
+        // Determine the media type
+        MediaType mediaType = MediaType.parseMediaType(determineContentType(file.getName()));
+
+        // Set cache control
         headers.setCacheControl("max-age=1800, must-revalidate");
+
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .body(fileContent);
+                .contentLength(file.length())
+                .contentType(mediaType)
+                .body(resource);
+    }
+
+    private String determineContentType(String fileName) {
+        try {
+            String contentType = Files.probeContentType(new File(fileName).toPath());
+            if (contentType != null) {
+                return contentType;
+            }
+        } catch (IOException e) {
+            // Log the error if needed
+        }
+
+        // Fallback to extension-based detection
+        if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+            return "text/html";
+        } else if (fileName.endsWith(".css")) {
+            return "text/css";
+        } else if (fileName.endsWith(".js")) {
+            return "application/javascript";
+        } else if (fileName.endsWith(".png")) {
+            return "image/png";
+        } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        }
+        // Add more file types as needed
+        return "application/octet-stream";
     }
 
     @GetMapping("/note/{noteId}")

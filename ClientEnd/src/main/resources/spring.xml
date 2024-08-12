@@ -27,12 +27,19 @@
 
     <mvc:annotation-driven>
         <mvc:message-converters>
-            <!-- 配置Fastjson支持 -->
+            <!--&lt;!&ndash; 配置Fastjson支持 &ndash;&gt;
             <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
                 <property name="supportedMediaTypes">
                     <list>
                         <value>text/html;charset=UTF-8</value>
                         <value>application/json</value>
+                    </list>
+                </property>-->
+<!--            add ResourceHttpMessageConverter-->
+            <bean class="org.springframework.http.converter.ResourceHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/html</value>
                     </list>
                 </property>
             </bean>
