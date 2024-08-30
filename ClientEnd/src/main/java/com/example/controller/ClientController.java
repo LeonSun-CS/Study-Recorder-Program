@@ -23,9 +23,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -130,7 +128,8 @@ public class ClientController {
         mv.addObject("auth", authHelper);
 
         Date startDate;
-        Date endDate = null;
+        LocalTime endOfDay = LocalTime.of(23, 59, 59);
+        LocalDateTime endDate = null;
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         // since the start param cannot be parsed as Date in the method signature, we need to parse it manually
         try {
@@ -142,10 +141,12 @@ public class ClientController {
                 startDate = Date.from(instant);
             }
             if (end != null && !end.isEmpty()) {
-                endDate = format.parse(end);
+                // TODO: DEBUG ***************************************************
+//                endDate = format.parse(end);
+                endDate = LocalDateTime.of(LocalDate.parse(end), endOfDay).atZone(ZoneId.systemDefault()).toLocalDateTime();
             } else {
                 // if the end date is not provided, set it to the current date
-                endDate = new Date();
+                endDate = LocalDateTime.of(LocalDate.now(), endOfDay);
             }
         } catch (ParseException e) {
             mv.addObject("msg", "Invalid date format. Please use yyyy-MM-dd format.");
@@ -156,13 +157,16 @@ public class ClientController {
         mv.addObject("terms", terms);
         List<Course> allCourses = courseService.getAllCourses();
         mv.addObject("courses", allCourses);
-        List<Note> notes = noteService.getNotesByFilter(termId, courseId, startDate, endDate);
+        // Define the formatter that matches MySQL DATETIME/TIMESTAMP format
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        List<Note> notes = noteService.getNotesByFilter(termId, courseId, startDate, endDate.format(formatter));
         mv.addObject("notes", notes);
 
         mv.addObject("auth", authHelper);
 
         mv.addObject("placeholderStart", format.format(startDate));
-        mv.addObject("placeholderEnd", format.format(endDate));
+        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        mv.addObject("placeholderEnd", endDate.format(formatter2));
         mv.addObject("placeholderTermId", termId);
         mv.addObject("placeholderCourseId", courseId);
         mv.setViewName("notes");

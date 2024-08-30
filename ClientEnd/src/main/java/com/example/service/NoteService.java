@@ -20,7 +20,7 @@ public class NoteService {
     @Value("${file.path}")
     private String filePath;
 
-    public List<Note> getNotesByFilter(Integer termId, Integer courseId, Date start, Date end) {
+    public List<Note> getNotesByFilter(Integer termId, Integer courseId, Date start, String end) {
         termId = (termId == 0) ? null : termId;
         courseId = (courseId == 0) ? null : courseId;
         return noteDAO.getNotesByFilter(termId, courseId, start, end);

@@ -35,6 +35,8 @@ services:
       - ./tomcat/webapps:/usr/local/tomcat/webapps
 #     todo: change the host directory to the actual path of the files
       - ./files:/usr/local/tomcat/files
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       - mysql
       - redis

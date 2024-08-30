@@ -11,7 +11,7 @@ public interface NoteDAO {
     List<Note> getNotesByFilter(@Param("termId") Integer termId,
                                 @Param("courseId") Integer courseId,
                                 @Param("start") Date start,
-                                @Param("end") Date end);
+                                @Param("end") String end);
 
     boolean addNote(@Param("courseId") Integer courseId,
                     @Param("content") String content,
