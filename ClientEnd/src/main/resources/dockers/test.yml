@@ -65,6 +65,8 @@ services:
       - ./mysql/initdb-file:/docker-entrypoint-initdb.d
       # mount a volume for backup files of databases
       - ./mysql/backups:/backups
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - backend_network
 
