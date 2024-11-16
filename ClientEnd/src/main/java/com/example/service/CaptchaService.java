@@ -20,8 +20,8 @@ public class CaptchaService {
     public String verify(String cfResponse) {
         String verifyUrl = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 //        String secretKey = "2x0000000000000000000000000000000AA";
-        String secretKey = "1x0000000000000000000000000000000AA";
-//        String secretKey = "0x4AAAAAAAYlvIEDDWQ4aoAeipnpCVRgjwo";
+//        String secretKey = "1x0000000000000000000000000000000AA";
+        String secretKey = "0x4AAAAAAAYlvIEDDWQ4aoAeipnpCVRgjwo";
         // prepare http entity
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

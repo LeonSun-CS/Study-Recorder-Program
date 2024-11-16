@@ -93,6 +93,8 @@
         <!--        <ref bean="helloWorldInterceptor" />-->
         <mvc:interceptor>
             <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/favicon.ico"/>
+            <mvc:exclude-mapping path="/favicon.svg"/>
             <mvc:exclude-mapping path="/captcha**"/>
 <!--            <mvc:exclude-mapping path="/captcha"/>-->
             <mvc:exclude-mapping path="/fail"/>

@@ -92,6 +92,8 @@ public class ClientController {
             return mv;
         }
         String verifiedCaptcha = captchaService.verify(tsResponse);
+        /* TODO: DEBUG **************************************************************** */
+        System.out.println("tsResponse = " + tsResponse);
         if (!"success".equals(verifiedCaptcha)) {
             mv.addObject("quota", quotaObject);
             mv.addObject("auth", authHelper);
